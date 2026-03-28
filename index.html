@@ -39,7 +39,6 @@
 
   .flow { padding: 40px; }
 
-  /* Grid */
   .grid-section {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -68,7 +67,6 @@
 
   .grid-item:hover .meta { color: #777; }
 
-  /* === Expanded photo === */
   .expanded-photo {
     width: 100vw;
     margin-left: -40px;
@@ -129,40 +127,35 @@
   .nav-arrow:hover { color: #555; }
   .nav-arrow:disabled { color: #eee; cursor: default; }
 
-  /* Image stage: two imgs stacked for crossfade */
-  .img-stage {
+  .img-wrap {
     flex: 1;
-    min-width: 0;
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 0;
     cursor: zoom-in;
   }
 
-  .img-stage.enlarged {
-    cursor: zoom-out;
-  }
-
-  .img-stage img {
+  .img-wrap img {
     max-width: 100%;
     max-height: 78vh;
     object-fit: contain;
     display: block;
     user-select: none;
     -webkit-user-drag: none;
-    transition: opacity 0.25s ease, max-height 0.3s ease;
+    transition: max-width 0.3s ease, max-height 0.3s ease, opacity 0.2s ease;
   }
 
-  .img-stage .img-back {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  .img-wrap img.fading {
     opacity: 0;
   }
 
-  .img-stage.enlarged img {
+  .img-wrap.enlarged {
+    cursor: zoom-out;
+  }
+
+  .img-wrap.enlarged img {
+    max-width: 100%;
     max-height: none;
   }
 
@@ -243,60 +236,22 @@
 
 <script>
 const photos = [
-  { id: "DSC01832", src: "photos/DSC01832.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01808", src: "photos/DSC01808_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01848", src: "photos/DSC01848_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01802", src: "photos/DSC01802_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01811", src: "photos/DSC01811_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01814", src: "photos/DSC01814.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01817", src: "photos/DSC01817.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01800", src: "photos/DSC01800_edit.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01798", src: "photos/DSC01798_edit_cut.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01885", src: "photos/DSC01885.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01897", src: "photos/DSC01897.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01913", src: "photos/DSC01913.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC01954", src: "photos/DSC01954_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02040", src: "photos/DSC02040_edit.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02086", src: "photos/DSC02086_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02142", src: "photos/DSC02142_edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02146", src: "photos/DSC02146_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02207", src: "photos/DSC02207_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02259", src: "photos/DSC02259_edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02282", src: "photos/DSC02282__edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02308", src: "photos/DSC02308_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02430", src: "photos/DSC02430_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
-  { id: "DSC02439", src: "photos/DSC02439_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  {
+    "id": "DSC01025",
+    "thumb": "photos/thumb/DSC01025.jpg",
+    "full": "photos/full/DSC01025.jpg",
+    "meta": "ƒ/— · 1/— · ISO — · —"
+  }
 ];
 
 const flow = document.getElementById('flow');
 let expandedId = null;
 let isEnlarged = false;
-const preloadCache = {};
 
 function getIdx() {
   return photos.findIndex(p => p.id === expandedId);
 }
 
-// Preload an image and return a promise
-function preloadImage(src) {
-  if (preloadCache[src]) return preloadCache[src];
-  const promise = new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve(src);
-    img.onerror = () => resolve(src);
-    img.src = src;
-  });
-  preloadCache[src] = promise;
-  return promise;
-}
-
-// Preload neighbors (prev + next)
-function preloadNeighbors(idx) {
-  if (idx > 0) preloadImage(photos[idx - 1].src);
-  if (idx < photos.length - 1) preloadImage(photos[idx + 1].src);
-}
-
-// Open from grid — full re-render
 function openFromGrid(id) {
   expandedId = id;
   isEnlarged = false;
@@ -306,87 +261,64 @@ function openFromGrid(id) {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-  preloadNeighbors(getIdx());
 }
 
-// Navigate via arrows — crossfade in place
 function navigateArrow(id) {
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
+  swapExpandedPhoto(id);
+}
 
+function swapExpandedPhoto(id) {
   const photo = photos.find(p => p.id === id);
   if (!photo) return;
 
   const idx = getIdx();
-  const stage = document.querySelector('.img-stage');
-  const imgFront = document.getElementById('img-front');
-  const imgBack = document.getElementById('img-back');
+  const img = document.querySelector('#img-wrap img');
   const meta = document.querySelector('.meta-expanded');
+  const imgWrap = document.getElementById('img-wrap');
   const expanded = document.querySelector('.expanded-photo');
   const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
   const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
 
-  if (!imgFront || !imgBack || !expanded) return;
+  if (!img || !expanded) return;
 
-  if (stage) stage.classList.remove('enlarged');
+  if (imgWrap) imgWrap.classList.remove('enlarged');
 
-  // Load new image into back layer, then crossfade
-  preloadImage(photo.src).then(() => {
-    imgBack.src = photo.src;
+  img.classList.add('fading');
 
-    // Crossfade: back fades in, front fades out
-    imgBack.style.opacity = '1';
-    imgFront.style.opacity = '0';
+  setTimeout(() => {
+    img.src = photo.full;
+    if (meta) meta.textContent = photo.meta;
+    expanded.id = photo.id;
 
-    // After transition, swap roles
-    setTimeout(() => {
-      imgFront.src = photo.src;
-      imgFront.style.opacity = '1';
-      imgBack.style.opacity = '0';
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
 
-      expanded.id = photo.id;
-      if (meta) meta.textContent = photo.meta;
-
-      // Update arrows
-      if (prevBtn) prevBtn.disabled = idx <= 0;
-      if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
-
-      // Rebind arrows with new idx
-      rebindArrows(idx);
-
-      // Preload neighbors
-      preloadNeighbors(idx);
-    }, 260);
-  });
-}
-
-function rebindArrows(idx) {
-  const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
-  const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
-
-  if (prevBtn) {
-    const newPrev = prevBtn.cloneNode(true);
-    prevBtn.replaceWith(newPrev);
-    newPrev.disabled = idx <= 0;
-    if (idx > 0) {
-      newPrev.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigateArrow(photos[idx - 1].id);
-      });
+    if (prevBtn) {
+      const newPrev = prevBtn.cloneNode(true);
+      prevBtn.replaceWith(newPrev);
+      if (idx > 0) {
+        newPrev.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateArrow(photos[idx - 1].id);
+        });
+      }
     }
-  }
-  if (nextBtn) {
-    const newNext = nextBtn.cloneNode(true);
-    nextBtn.replaceWith(newNext);
-    newNext.disabled = idx >= photos.length - 1;
-    if (idx < photos.length - 1) {
-      newNext.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigateArrow(photos[idx + 1].id);
-      });
+    if (nextBtn) {
+      const newNext = nextBtn.cloneNode(true);
+      nextBtn.replaceWith(newNext);
+      if (idx < photos.length - 1) {
+        newNext.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateArrow(photos[idx + 1].id);
+        });
+      }
     }
-  }
+
+    img.classList.remove('fading');
+  }, 200);
 }
 
 function closeExpanded() {
@@ -420,7 +352,7 @@ function render() {
       const item = document.createElement('div');
       item.className = 'grid-item';
       item.innerHTML = `
-        <img src="${photo.src}" alt="${photo.id}" loading="lazy">
+        <img src="${photo.thumb}" alt="${photo.id}" loading="lazy">
         <div class="meta">${photo.meta}</div>
       `;
       item.addEventListener('click', () => openFromGrid(photo.id));
@@ -444,9 +376,8 @@ function buildExpanded(photo) {
     <button class="close-btn" title="Close">&times;</button>
     <div class="viewer-row">
       <button class="nav-arrow" ${!hasPrev ? 'disabled' : ''} data-dir="prev">&#8592;</button>
-      <div class="img-stage" id="img-stage">
-        <img id="img-front" src="${photo.src}" alt="${photo.id}">
-        <img id="img-back" class="img-back" src="" alt="">
+      <div class="img-wrap ${isEnlarged ? 'enlarged' : ''}" id="img-wrap">
+        <img src="${photo.full}" alt="${photo.id}">
       </div>
       <button class="nav-arrow" ${!hasNext ? 'disabled' : ''} data-dir="next">&#8594;</button>
     </div>
@@ -455,28 +386,29 @@ function buildExpanded(photo) {
 
   flow.appendChild(el);
 
-  // Close
   el.querySelector('.close-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     closeExpanded();
   });
 
-  // Bind arrows
-  rebindArrows(idx);
-
-  // Toggle enlarge on image click
-  const stage = el.querySelector('#img-stage');
-  stage.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isEnlarged = !isEnlarged;
-    stage.classList.toggle('enlarged', isEnlarged);
+  el.querySelectorAll('.nav-arrow').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (btn.disabled) return;
+      const dir = btn.dataset.dir;
+      if (dir === 'prev' && hasPrev) navigateArrow(photos[idx - 1].id);
+      if (dir === 'next' && hasNext) navigateArrow(photos[idx + 1].id);
+    });
   });
 
-  // Preload neighbors
-  preloadNeighbors(idx);
+  const imgWrap = el.querySelector('#img-wrap');
+  imgWrap.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isEnlarged = !isEnlarged;
+    imgWrap.classList.toggle('enlarged', isEnlarged);
+  });
 }
 
-// Keyboard
 document.addEventListener('keydown', (e) => {
   if (!expandedId) return;
   const idx = getIdx();
@@ -484,8 +416,8 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (isEnlarged) {
       isEnlarged = false;
-      const s = document.getElementById('img-stage');
-      if (s) s.classList.remove('enlarged');
+      const w = document.getElementById('img-wrap');
+      if (w) w.classList.remove('enlarged');
     } else {
       closeExpanded();
     }
@@ -496,7 +428,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Hash on load
 const hash = window.location.hash.slice(1);
 if (hash) {
   const photo = photos.find(p => p.id === hash);
