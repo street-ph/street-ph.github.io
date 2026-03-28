@@ -1,0 +1,11 @@
+# Original photos (heavy, not for git)
+src/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
