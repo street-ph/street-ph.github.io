@@ -344,7 +344,11 @@ def generate_html(photos):
     display: block;
     user-select: none;
     -webkit-user-drag: none;
-    transition: max-width 0.3s ease, max-height 0.3s ease;
+    transition: max-width 0.3s ease, max-height 0.3s ease, opacity 0.2s ease;
+  }}
+
+  .img-wrap img.fading {{
+    opacity: 0;
   }}
 
   .img-wrap.enlarged {{
@@ -443,14 +447,71 @@ function getIdx() {{
 }}
 
 function navigateTo(id) {{
+  const wasExpanded = expandedId !== null;
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
-  render();
-  requestAnimationFrame(() => {{
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-  }});
+
+  if (wasExpanded) {{
+    swapExpandedPhoto(id);
+  }} else {{
+    render();
+    requestAnimationFrame(() => {{
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+    }});
+  }}
+}}
+
+function swapExpandedPhoto(id) {{
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+
+  const idx = getIdx();
+  const img = document.querySelector('#img-wrap img');
+  const meta = document.querySelector('.meta-expanded');
+  const imgWrap = document.getElementById('img-wrap');
+  const expanded = document.querySelector('.expanded-photo');
+  const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
+  const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
+
+  if (!img || !expanded) return;
+
+  if (imgWrap) imgWrap.classList.remove('enlarged');
+
+  img.classList.add('fading');
+
+  setTimeout(() => {{
+    img.src = photo.full;
+    if (meta) meta.textContent = photo.meta;
+    expanded.id = photo.id;
+
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
+
+    if (prevBtn) {{
+      const newPrev = prevBtn.cloneNode(true);
+      prevBtn.replaceWith(newPrev);
+      if (idx > 0) {{
+        newPrev.addEventListener('click', (e) => {{
+          e.stopPropagation();
+          navigateTo(photos[idx - 1].id);
+        }});
+      }}
+    }}
+    if (nextBtn) {{
+      const newNext = nextBtn.cloneNode(true);
+      nextBtn.replaceWith(newNext);
+      if (idx < photos.length - 1) {{
+        newNext.addEventListener('click', (e) => {{
+          e.stopPropagation();
+          navigateTo(photos[idx + 1].id);
+        }});
+      }}
+    }}
+
+    img.classList.remove('fading');
+  }}, 200);
 }}
 
 function closeExpanded() {{

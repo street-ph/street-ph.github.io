@@ -39,6 +39,7 @@
 
   .flow { padding: 40px; }
 
+  /* Grid */
   .grid-section {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -67,6 +68,7 @@
 
   .grid-item:hover .meta { color: #777; }
 
+  /* === Expanded photo === */
   .expanded-photo {
     width: 100vw;
     margin-left: -40px;
@@ -101,6 +103,7 @@
 
   .close-btn:hover { color: #333; }
 
+  /* Viewer row */
   .viewer-row {
     display: flex;
     align-items: center;
@@ -127,6 +130,7 @@
   .nav-arrow:hover { color: #555; }
   .nav-arrow:disabled { color: #eee; cursor: default; }
 
+  /* Image wrapper */
   .img-wrap {
     flex: 1;
     display: flex;
@@ -136,6 +140,7 @@
     cursor: zoom-in;
   }
 
+  /* State 1: fitted (default expanded) */
   .img-wrap img {
     max-width: 100%;
     max-height: 78vh;
@@ -143,9 +148,14 @@
     display: block;
     user-select: none;
     -webkit-user-drag: none;
-    transition: max-width 0.3s ease, max-height 0.3s ease;
+    transition: max-width 0.3s ease, max-height 0.3s ease, opacity 0.2s ease;
   }
 
+  .img-wrap img.fading {
+    opacity: 0;
+  }
+
+  /* State 2: enlarged — near full width, no height cap, scrolls naturally */
   .img-wrap.enlarged {
     cursor: zoom-out;
   }
@@ -169,6 +179,7 @@
     to { opacity: 1; }
   }
 
+  /* Footer */
   .site-footer {
     padding: 60px 40px 40px;
     text-align: center;
@@ -181,6 +192,7 @@
     letter-spacing: 0.04em;
   }
 
+  /* Responsive */
   @media (min-width: 1800px) {
     .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; }
     .grid-item .meta { font-size: 9px; }
@@ -232,144 +244,29 @@
 
 <script>
 const photos = [
-  {
-    "id": "DSC01798_edit_cut",
-    "thumb": "photos/thumb/DSC01798_edit_cut.jpg",
-    "full": "photos/full/DSC01798_edit_cut.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01800_edit",
-    "thumb": "photos/thumb/DSC01800_edit.jpg",
-    "full": "photos/full/DSC01800_edit.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01802_edit_crop",
-    "thumb": "photos/thumb/DSC01802_edit_crop.jpg",
-    "full": "photos/full/DSC01802_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01808_edit_crop",
-    "thumb": "photos/thumb/DSC01808_edit_crop.jpg",
-    "full": "photos/full/DSC01808_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01811_edit_crop",
-    "thumb": "photos/thumb/DSC01811_edit_crop.jpg",
-    "full": "photos/full/DSC01811_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01814",
-    "thumb": "photos/thumb/DSC01814.jpg",
-    "full": "photos/full/DSC01814.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01817",
-    "thumb": "photos/thumb/DSC01817.jpg",
-    "full": "photos/full/DSC01817.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01832",
-    "thumb": "photos/thumb/DSC01832.jpg",
-    "full": "photos/full/DSC01832.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01848_edit_crop",
-    "thumb": "photos/thumb/DSC01848_edit_crop.jpg",
-    "full": "photos/full/DSC01848_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01885",
-    "thumb": "photos/thumb/DSC01885.jpg",
-    "full": "photos/full/DSC01885.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01897",
-    "thumb": "photos/thumb/DSC01897.jpg",
-    "full": "photos/full/DSC01897.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01913",
-    "thumb": "photos/thumb/DSC01913.jpg",
-    "full": "photos/full/DSC01913.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC01954_edit_crop",
-    "thumb": "photos/thumb/DSC01954_edit_crop.jpg",
-    "full": "photos/full/DSC01954_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02040_edit",
-    "thumb": "photos/thumb/DSC02040_edit.jpg",
-    "full": "photos/full/DSC02040_edit.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02086_edit_crop",
-    "thumb": "photos/thumb/DSC02086_edit_crop.jpg",
-    "full": "photos/full/DSC02086_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02142_edit_crop_1",
-    "thumb": "photos/thumb/DSC02142_edit_crop_1.jpg",
-    "full": "photos/full/DSC02142_edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02146_edit_crop",
-    "thumb": "photos/thumb/DSC02146_edit_crop.jpg",
-    "full": "photos/full/DSC02146_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02207_edit_crop",
-    "thumb": "photos/thumb/DSC02207_edit_crop.jpg",
-    "full": "photos/full/DSC02207_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02259_edit_crop_1",
-    "thumb": "photos/thumb/DSC02259_edit_crop_1.jpg",
-    "full": "photos/full/DSC02259_edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02282__edit_crop_1",
-    "thumb": "photos/thumb/DSC02282__edit_crop_1.jpg",
-    "full": "photos/full/DSC02282__edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02308_edit_crop",
-    "thumb": "photos/thumb/DSC02308_edit_crop.jpg",
-    "full": "photos/full/DSC02308_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02430_edit_crop",
-    "thumb": "photos/thumb/DSC02430_edit_crop.jpg",
-    "full": "photos/full/DSC02430_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  },
-  {
-    "id": "DSC02439_edit_crop",
-    "thumb": "photos/thumb/DSC02439_edit_crop.jpg",
-    "full": "photos/full/DSC02439_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
-  }
+  { id: "DSC01832", src: "photos/DSC01832.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01808", src: "photos/DSC01808_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01848", src: "photos/DSC01848_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01802", src: "photos/DSC01802_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01811", src: "photos/DSC01811_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01814", src: "photos/DSC01814.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01817", src: "photos/DSC01817.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01800", src: "photos/DSC01800_edit.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01798", src: "photos/DSC01798_edit_cut.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01885", src: "photos/DSC01885.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01897", src: "photos/DSC01897.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01913", src: "photos/DSC01913.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC01954", src: "photos/DSC01954_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02040", src: "photos/DSC02040_edit.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02086", src: "photos/DSC02086_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02142", src: "photos/DSC02142_edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02146", src: "photos/DSC02146_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02207", src: "photos/DSC02207_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02259", src: "photos/DSC02259_edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02282", src: "photos/DSC02282__edit_crop_1.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02308", src: "photos/DSC02308_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02430", src: "photos/DSC02430_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
+  { id: "DSC02439", src: "photos/DSC02439_edit_crop.JPG", meta: "ƒ/— · 1/— · ISO — · —" },
 ];
 
 const flow = document.getElementById('flow');
@@ -381,14 +278,79 @@ function getIdx() {
 }
 
 function navigateTo(id) {
+  const wasExpanded = expandedId !== null;
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
-  render();
-  requestAnimationFrame(() => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
+
+  if (wasExpanded) {
+    // Swap image in-place with fade — no re-render
+    swapExpandedPhoto(id);
+  } else {
+    // Opening from grid — full re-render
+    render();
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+}
+
+function swapExpandedPhoto(id) {
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+
+  const idx = getIdx();
+  const img = document.querySelector('#img-wrap img');
+  const meta = document.querySelector('.meta-expanded');
+  const imgWrap = document.getElementById('img-wrap');
+  const expanded = document.querySelector('.expanded-photo');
+  const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
+  const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
+
+  if (!img || !expanded) return;
+
+  // Reset enlarged state
+  if (imgWrap) imgWrap.classList.remove('enlarged');
+
+  // Fade out
+  img.classList.add('fading');
+
+  setTimeout(() => {
+    // Swap content
+    img.src = photo.src;
+    if (meta) meta.textContent = photo.meta;
+    expanded.id = photo.id;
+
+    // Update arrow states
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
+
+    // Rebind arrow clicks
+    if (prevBtn) {
+      const newPrev = prevBtn.cloneNode(true);
+      prevBtn.replaceWith(newPrev);
+      if (idx > 0) {
+        newPrev.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateTo(photos[idx - 1].id);
+        });
+      }
+    }
+    if (nextBtn) {
+      const newNext = nextBtn.cloneNode(true);
+      nextBtn.replaceWith(newNext);
+      if (idx < photos.length - 1) {
+        newNext.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateTo(photos[idx + 1].id);
+        });
+      }
+    }
+
+    // Fade in
+    img.classList.remove('fading');
+  }, 200);
 }
 
 function closeExpanded() {
@@ -422,7 +384,7 @@ function render() {
       const item = document.createElement('div');
       item.className = 'grid-item';
       item.innerHTML = `
-        <img src="${photo.thumb}" alt="${photo.id}" loading="lazy">
+        <img src="${photo.src}" alt="${photo.id}" loading="lazy">
         <div class="meta">${photo.meta}</div>
       `;
       item.addEventListener('click', () => navigateTo(photo.id));
@@ -447,7 +409,7 @@ function buildExpanded(photo) {
     <div class="viewer-row">
       <button class="nav-arrow" ${!hasPrev ? 'disabled' : ''} data-dir="prev">&#8592;</button>
       <div class="img-wrap ${isEnlarged ? 'enlarged' : ''}" id="img-wrap">
-        <img src="${photo.full}" alt="${photo.id}">
+        <img src="${photo.src}" alt="${photo.id}">
       </div>
       <button class="nav-arrow" ${!hasNext ? 'disabled' : ''} data-dir="next">&#8594;</button>
     </div>
@@ -456,11 +418,13 @@ function buildExpanded(photo) {
 
   flow.appendChild(el);
 
+  // Close
   el.querySelector('.close-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     closeExpanded();
   });
 
+  // Nav
   el.querySelectorAll('.nav-arrow').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -471,6 +435,7 @@ function buildExpanded(photo) {
     });
   });
 
+  // Toggle enlarge on image click
   const imgWrap = el.querySelector('#img-wrap');
   imgWrap.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -479,6 +444,7 @@ function buildExpanded(photo) {
   });
 }
 
+// Keyboard
 document.addEventListener('keydown', (e) => {
   if (!expandedId) return;
   const idx = getIdx();
@@ -498,6 +464,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Hash on load
 const hash = window.location.hash.slice(1);
 if (hash) {
   const photo = photos.find(p => p.id === hash);
