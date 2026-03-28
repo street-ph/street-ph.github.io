@@ -30,8 +30,6 @@ except ImportError:
     print("Pillow is required: pip install Pillow")
     sys.exit(1)
 
-
-# Config
 SRC_DIR = Path("src")
 THUMB_DIR = Path("photos/thumb")
 FULL_DIR = Path("photos/full")
@@ -43,7 +41,6 @@ OUTPUT_HTML = Path("index.html")
 
 
 def get_exif(img):
-    """Extract relevant EXIF data from a PIL Image."""
     exif_data = {}
     try:
         raw = img._getexif()
@@ -58,10 +55,7 @@ def get_exif(img):
 
 
 def format_meta(exif):
-    """Format EXIF into a display string like: ƒ/2.8 · 1/250 · ISO 400 · 12 Mar 2025"""
     parts = []
-
-    # Aperture
     fnumber = exif.get("FNumber")
     if fnumber:
         try:
@@ -69,8 +63,6 @@ def format_meta(exif):
             parts.append(f"ƒ/{f:.1f}".rstrip("0").rstrip("."))
         except (TypeError, ValueError):
             pass
-
-    # Shutter speed
     exposure = exif.get("ExposureTime")
     if exposure:
         try:
@@ -82,13 +74,9 @@ def format_meta(exif):
                 parts.append(f"1/{denom}")
         except (TypeError, ValueError, ZeroDivisionError):
             pass
-
-    # ISO
     iso = exif.get("ISOSpeedRatings")
     if iso:
         parts.append(f"ISO {iso}")
-
-    # Date
     date_str = exif.get("DateTimeOriginal")
     if date_str:
         try:
@@ -96,15 +84,12 @@ def format_meta(exif):
             parts.append(dt.strftime("%-d %b %Y"))
         except (ValueError, TypeError):
             pass
-
     if not parts:
         return "ƒ/— · 1/— · ISO — · —"
-
     return " · ".join(parts)
 
 
 def get_sort_key(exif, filename):
-    """Sort by date taken, fallback to filename."""
     date_str = exif.get("DateTimeOriginal")
     if date_str:
         try:
@@ -115,7 +100,6 @@ def get_sort_key(exif, filename):
 
 
 def resize_image(img, long_edge):
-    """Resize so the longest edge equals long_edge, preserving aspect ratio."""
     w, h = img.size
     if max(w, h) <= long_edge:
         return img.copy()
@@ -129,54 +113,37 @@ def resize_image(img, long_edge):
 
 
 def process_images():
-    """Process all images in src/, return list of photo dicts."""
     THUMB_DIR.mkdir(parents=True, exist_ok=True)
     FULL_DIR.mkdir(parents=True, exist_ok=True)
-
     extensions = {".jpg", ".jpeg", ".JPG", ".JPEG"}
     sources = sorted(
         [f for f in SRC_DIR.iterdir() if f.suffix in extensions],
         key=lambda f: f.name
     )
-
     if not sources:
         print(f"No images found in {SRC_DIR}/")
         sys.exit(1)
-
     photos = []
-
     for src_path in sources:
         name = src_path.stem
         print(f"  Processing {src_path.name}...")
-
         img = Image.open(src_path)
-
-        # Auto-rotate based on EXIF orientation
         try:
             from PIL import ImageOps
             img = ImageOps.exif_transpose(img)
         except Exception:
             pass
-
-        # Extract EXIF before any transforms
         exif = get_exif(img)
         meta = format_meta(exif)
         sort_key = get_sort_key(exif, name)
-
-        # Convert to RGB if needed (e.g. RGBA PNGs)
         if img.mode != "RGB":
             img = img.convert("RGB")
-
-        # Generate thumbnail
         thumb = resize_image(img, THUMB_LONG_EDGE)
         thumb_path = THUMB_DIR / f"{name}.jpg"
         thumb.save(thumb_path, "JPEG", quality=THUMB_QUALITY, optimize=True)
-
-        # Generate full-size
         full = resize_image(img, FULL_LONG_EDGE)
         full_path = FULL_DIR / f"{name}.jpg"
         full.save(full_path, "JPEG", quality=FULL_QUALITY, optimize=True)
-
         photos.append({
             "id": name,
             "thumb": f"photos/thumb/{name}.jpg",
@@ -184,21 +151,16 @@ def process_images():
             "meta": meta,
             "sort_key": sort_key,
         })
-
-    # Sort by date taken
     photos.sort(key=lambda p: p["sort_key"])
-
-    # Remove sort_key before passing to template
     for p in photos:
         del p["sort_key"]
-
     return photos
 
 
 def generate_html(photos):
-    """Generate index.html with embedded photo data."""
     photos_json = json.dumps(photos, indent=2, ensure_ascii=False)
 
+    # Note: single braces in CSS/JS are doubled for f-string escaping
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -328,35 +290,39 @@ def generate_html(photos):
   .nav-arrow:hover {{ color: #555; }}
   .nav-arrow:disabled {{ color: #eee; cursor: default; }}
 
-  .img-wrap {{
+  .img-stage {{
     flex: 1;
+    min-width: 0;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 0;
     cursor: zoom-in;
   }}
 
-  .img-wrap img {{
+  .img-stage.enlarged {{
+    cursor: zoom-out;
+  }}
+
+  .img-stage img {{
     max-width: 100%;
     max-height: 78vh;
     object-fit: contain;
     display: block;
     user-select: none;
     -webkit-user-drag: none;
-    transition: max-width 0.3s ease, max-height 0.3s ease, opacity 0.2s ease;
+    transition: opacity 0.25s ease, max-height 0.3s ease;
   }}
 
-  .img-wrap img.fading {{
+  .img-stage .img-back {{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     opacity: 0;
   }}
 
-  .img-wrap.enlarged {{
-    cursor: zoom-out;
-  }}
-
-  .img-wrap.enlarged img {{
-    max-width: 100%;
+  .img-stage.enlarged img {{
     max-height: none;
   }}
 
@@ -441,9 +407,27 @@ const photos = {photos_json};
 const flow = document.getElementById('flow');
 let expandedId = null;
 let isEnlarged = false;
+const preloadCache = {{}};
 
 function getIdx() {{
   return photos.findIndex(p => p.id === expandedId);
+}}
+
+function preloadImage(src) {{
+  if (preloadCache[src]) return preloadCache[src];
+  const promise = new Promise((resolve) => {{
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = () => resolve(src);
+    img.src = src;
+  }});
+  preloadCache[src] = promise;
+  return promise;
+}}
+
+function preloadNeighbors(idx) {{
+  if (idx > 0) preloadImage(photos[idx - 1].full);
+  if (idx < photos.length - 1) preloadImage(photos[idx + 1].full);
 }}
 
 function openFromGrid(id) {{
@@ -455,64 +439,77 @@ function openFromGrid(id) {{
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
   }});
+  preloadNeighbors(getIdx());
 }}
 
 function navigateArrow(id) {{
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
-  swapExpandedPhoto(id);
-}}
 
-function swapExpandedPhoto(id) {{
   const photo = photos.find(p => p.id === id);
   if (!photo) return;
 
   const idx = getIdx();
-  const img = document.querySelector('#img-wrap img');
+  const stage = document.querySelector('.img-stage');
+  const imgFront = document.getElementById('img-front');
+  const imgBack = document.getElementById('img-back');
   const meta = document.querySelector('.meta-expanded');
-  const imgWrap = document.getElementById('img-wrap');
   const expanded = document.querySelector('.expanded-photo');
+
+  if (!imgFront || !imgBack || !expanded) return;
+  if (stage) stage.classList.remove('enlarged');
+
+  preloadImage(photo.full).then(() => {{
+    imgBack.src = photo.full;
+    imgBack.style.opacity = '1';
+    imgFront.style.opacity = '0';
+
+    setTimeout(() => {{
+      imgFront.src = photo.full;
+      imgFront.style.opacity = '1';
+      imgBack.style.opacity = '0';
+
+      expanded.id = photo.id;
+      if (meta) meta.textContent = photo.meta;
+
+      const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
+      const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
+      if (prevBtn) prevBtn.disabled = idx <= 0;
+      if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
+
+      rebindArrows(idx);
+      preloadNeighbors(idx);
+    }}, 260);
+  }});
+}}
+
+function rebindArrows(idx) {{
   const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
   const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
 
-  if (!img || !expanded) return;
-
-  if (imgWrap) imgWrap.classList.remove('enlarged');
-
-  img.classList.add('fading');
-
-  setTimeout(() => {{
-    img.src = photo.full;
-    if (meta) meta.textContent = photo.meta;
-    expanded.id = photo.id;
-
-    if (prevBtn) prevBtn.disabled = idx <= 0;
-    if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
-
-    if (prevBtn) {{
-      const newPrev = prevBtn.cloneNode(true);
-      prevBtn.replaceWith(newPrev);
-      if (idx > 0) {{
-        newPrev.addEventListener('click', (e) => {{
-          e.stopPropagation();
-          navigateArrow(photos[idx - 1].id);
-        }});
-      }}
+  if (prevBtn) {{
+    const newPrev = prevBtn.cloneNode(true);
+    prevBtn.replaceWith(newPrev);
+    newPrev.disabled = idx <= 0;
+    if (idx > 0) {{
+      newPrev.addEventListener('click', (e) => {{
+        e.stopPropagation();
+        navigateArrow(photos[idx - 1].id);
+      }});
     }}
-    if (nextBtn) {{
-      const newNext = nextBtn.cloneNode(true);
-      nextBtn.replaceWith(newNext);
-      if (idx < photos.length - 1) {{
-        newNext.addEventListener('click', (e) => {{
-          e.stopPropagation();
-          navigateArrow(photos[idx + 1].id);
-        }});
-      }}
+  }}
+  if (nextBtn) {{
+    const newNext = nextBtn.cloneNode(true);
+    nextBtn.replaceWith(newNext);
+    newNext.disabled = idx >= photos.length - 1;
+    if (idx < photos.length - 1) {{
+      newNext.addEventListener('click', (e) => {{
+        e.stopPropagation();
+        navigateArrow(photos[idx + 1].id);
+      }});
     }}
-
-    img.classList.remove('fading');
-  }}, 200);
+  }}
 }}
 
 function closeExpanded() {{
@@ -570,8 +567,9 @@ function buildExpanded(photo) {{
     <button class="close-btn" title="Close">&times;</button>
     <div class="viewer-row">
       <button class="nav-arrow" ${{!hasPrev ? 'disabled' : ''}} data-dir="prev">&#8592;</button>
-      <div class="img-wrap ${{isEnlarged ? 'enlarged' : ''}}" id="img-wrap">
-        <img src="${{photo.full}}" alt="${{photo.id}}">
+      <div class="img-stage" id="img-stage">
+        <img id="img-front" src="${{photo.full}}" alt="${{photo.id}}">
+        <img id="img-back" class="img-back" src="" alt="">
       </div>
       <button class="nav-arrow" ${{!hasNext ? 'disabled' : ''}} data-dir="next">&#8594;</button>
     </div>
@@ -585,22 +583,16 @@ function buildExpanded(photo) {{
     closeExpanded();
   }});
 
-  el.querySelectorAll('.nav-arrow').forEach(btn => {{
-    btn.addEventListener('click', (e) => {{
-      e.stopPropagation();
-      if (btn.disabled) return;
-      const dir = btn.dataset.dir;
-      if (dir === 'prev' && hasPrev) navigateArrow(photos[idx - 1].id);
-      if (dir === 'next' && hasNext) navigateArrow(photos[idx + 1].id);
-    }});
-  }});
+  rebindArrows(idx);
 
-  const imgWrap = el.querySelector('#img-wrap');
-  imgWrap.addEventListener('click', (e) => {{
+  const stage = el.querySelector('#img-stage');
+  stage.addEventListener('click', (e) => {{
     e.stopPropagation();
     isEnlarged = !isEnlarged;
-    imgWrap.classList.toggle('enlarged', isEnlarged);
+    stage.classList.toggle('enlarged', isEnlarged);
   }});
+
+  preloadNeighbors(idx);
 }}
 
 document.addEventListener('keydown', (e) => {{
@@ -610,8 +602,8 @@ document.addEventListener('keydown', (e) => {{
   if (e.key === 'Escape') {{
     if (isEnlarged) {{
       isEnlarged = false;
-      const w = document.getElementById('img-wrap');
-      if (w) w.classList.remove('enlarged');
+      const s = document.getElementById('img-stage');
+      if (s) s.classList.remove('enlarged');
     }} else {{
       closeExpanded();
     }}
@@ -648,17 +640,14 @@ if (expandedId) {{
 def main():
     print("Building street portfolio...")
     print()
-
     if not SRC_DIR.exists():
         SRC_DIR.mkdir()
         print(f"Created {SRC_DIR}/ — drop your original JPGs there and re-run.")
         sys.exit(0)
-
     photos = process_images()
     print()
     print(f"  {len(photos)} photos processed")
     print()
-
     generate_html(photos)
     print()
     print("Done. Ready to commit & push.")
