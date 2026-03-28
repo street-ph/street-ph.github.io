@@ -446,21 +446,22 @@ function getIdx() {{
   return photos.findIndex(p => p.id === expandedId);
 }}
 
-function navigateTo(id) {{
-  const wasExpanded = expandedId !== null;
+function openFromGrid(id) {{
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
+  render();
+  requestAnimationFrame(() => {{
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+  }});
+}}
 
-  if (wasExpanded) {{
-    swapExpandedPhoto(id);
-  }} else {{
-    render();
-    requestAnimationFrame(() => {{
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-    }});
-  }}
+function navigateArrow(id) {{
+  expandedId = id;
+  isEnlarged = false;
+  history.replaceState(null, '', '#' + id);
+  swapExpandedPhoto(id);
 }}
 
 function swapExpandedPhoto(id) {{
@@ -495,7 +496,7 @@ function swapExpandedPhoto(id) {{
       if (idx > 0) {{
         newPrev.addEventListener('click', (e) => {{
           e.stopPropagation();
-          navigateTo(photos[idx - 1].id);
+          navigateArrow(photos[idx - 1].id);
         }});
       }}
     }}
@@ -505,7 +506,7 @@ function swapExpandedPhoto(id) {{
       if (idx < photos.length - 1) {{
         newNext.addEventListener('click', (e) => {{
           e.stopPropagation();
-          navigateTo(photos[idx + 1].id);
+          navigateArrow(photos[idx + 1].id);
         }});
       }}
     }}
@@ -548,7 +549,7 @@ function render() {{
         <img src="${{photo.thumb}}" alt="${{photo.id}}" loading="lazy">
         <div class="meta">${{photo.meta}}</div>
       `;
-      item.addEventListener('click', () => navigateTo(photo.id));
+      item.addEventListener('click', () => openFromGrid(photo.id));
       gridItems.push(item);
     }}
   }});
@@ -589,8 +590,8 @@ function buildExpanded(photo) {{
       e.stopPropagation();
       if (btn.disabled) return;
       const dir = btn.dataset.dir;
-      if (dir === 'prev' && hasPrev) navigateTo(photos[idx - 1].id);
-      if (dir === 'next' && hasNext) navigateTo(photos[idx + 1].id);
+      if (dir === 'prev' && hasPrev) navigateArrow(photos[idx - 1].id);
+      if (dir === 'next' && hasNext) navigateArrow(photos[idx + 1].id);
     }});
   }});
 
@@ -615,9 +616,9 @@ document.addEventListener('keydown', (e) => {{
       closeExpanded();
     }}
   }} else if (e.key === 'ArrowLeft' && idx > 0) {{
-    navigateTo(photos[idx - 1].id);
+    navigateArrow(photos[idx - 1].id);
   }} else if (e.key === 'ArrowRight' && idx < photos.length - 1) {{
-    navigateTo(photos[idx + 1].id);
+    navigateArrow(photos[idx + 1].id);
   }}
 }});
 
