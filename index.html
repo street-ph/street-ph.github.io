@@ -35,17 +35,17 @@
   .site-footer { padding: 60px 40px 40px; text-align: center; }
   .site-footer span { font-size: 10px; font-weight: 300; color: #ccc; letter-spacing: 0.04em; }
   @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } .grid-item .meta { font-size: 9px; } }
-  @media (max-width: 1100px) { .grid-section { grid-template-columns: repeat(2, 1fr); } .flow { padding: 30px; } .expanded-photo { margin-left: -30px; padding: 40px 60px; } .site-header { padding: 30px 30px 0; } }
+  @media (max-width: 1100px) {
+    .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .flow { padding: 20px; }
+    .site-header { padding: 24px 20px 0; }
+    .grid-item { cursor: default; }
+    .grid-item:hover img { opacity: 1; }
+  }
   @media (max-width: 640px) {
-    .grid-section { grid-template-columns: 1fr; }
+    .grid-section { grid-template-columns: 1fr; gap: 12px; }
     .flow { padding: 16px; }
-    .expanded-photo { margin-left: -16px; padding: 12px 0 24px; margin-top: 12px; margin-bottom: 12px; align-items: flex-start; }
     .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; }
-    .nav-arrow { display: none; }
-    .close-btn { display: none; }
-    .img-stage { cursor: pointer; }
-    .img-stage img { max-height: none; width: 100%; }
-    .meta-expanded { padding-left: 16px; }
   }
   .grid-item { opacity: 0; transform: translateY(8px); animation: fadeUp 0.45s ease forwards; }
   @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
@@ -296,8 +296,30 @@ function closeExpanded() {
   render();
 }
 
+function isDesktop() {
+  return window.innerWidth > 1100;
+}
+
 function render() {
   flow.innerHTML = '';
+
+  if (!isDesktop()) {
+    // Simple feed mode: just images, full quality, no interaction
+    const section = document.createElement('div');
+    section.className = 'grid-section';
+    photos.forEach((photo, i) => {
+      const item = document.createElement('div');
+      item.className = 'grid-item';
+      item.id = photo.id;
+      item.style.animationDelay = `${i * 0.035}s`;
+      item.innerHTML = `<img src="${photo.full}" alt="${photo.id}" loading="lazy"><div class="meta">${photo.meta}</div>`;
+      section.appendChild(item);
+    });
+    flow.appendChild(section);
+    return;
+  }
+
+  // Desktop: interactive grid with expand
   let gridItems = [];
   function flushGrid() {
     if (!gridItems.length) return;
@@ -345,11 +367,10 @@ function buildExpanded(photo) {
   el.querySelector('.close-btn').addEventListener('click', (e) => { e.stopPropagation(); closeExpanded(); });
   rebindArrows(idx);
   const stage = el.querySelector('#img-stage');
-  const isMobile = window.innerWidth <= 640;
   stage.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (isMobile) { closeExpanded(); }
-    else { isEnlarged = !isEnlarged; stage.classList.toggle('enlarged', isEnlarged); }
+    isEnlarged = !isEnlarged;
+    stage.classList.toggle('enlarged', isEnlarged);
   });
   preloadNeighbors(idx);
 }
@@ -365,9 +386,19 @@ document.addEventListener('keydown', (e) => {
 });
 
 const hash = window.location.hash.slice(1);
-if (hash) { const photo = photos.find(p => p.id === hash); if (photo) expandedId = photo.id; }
+if (hash) {
+  const photo = photos.find(p => p.id === hash);
+  if (photo) {
+    if (isDesktop()) expandedId = photo.id;
+  }
+}
 render();
-if (expandedId) { requestAnimationFrame(() => { const el = document.getElementById(expandedId); if (el) el.scrollIntoView({ block: 'start' }); }); }
+if (hash) {
+  requestAnimationFrame(() => {
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView({ block: 'start' });
+  });
+}
 </script>
 </body>
 </html>
