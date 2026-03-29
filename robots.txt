@@ -1,0 +1,9 @@
+User-agent: Googlebot-Image
+Disallow: /photos/
+
+User-agent: Bingbot
+Disallow: /photos/
+
+User-agent: *
+Disallow: /photos/thumb/
+Disallow: /photos/full/
