@@ -153,7 +153,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   .flow { padding: 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
-  .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; }
+  .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
   .grid-item:hover img { opacity: 0.85; }
   .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.03em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; }
   .grid-item:hover .meta { color: #777; }
@@ -196,7 +196,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   <span class="site-subtitle">35mm · stuttgart</span>
 </header>
 <div class="flow" id="flow"></div>
-<footer class="site-footer"><span>2025</span></footer>
+<footer class="site-footer">
+  <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
+  <span style="font-size:9px;color:#ddd;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
+</footer>
 <script>
 const photos = __PHOTOS_JSON__;
 
@@ -399,6 +402,13 @@ if (hash) {
     if (el) el.scrollIntoView({ block: 'start' });
   });
 }
+// Block right-click and drag on images
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
+document.addEventListener('dragstart', (e) => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
 </script>
 </body>
 </html>"""

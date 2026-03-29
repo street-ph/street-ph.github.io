@@ -14,7 +14,7 @@
   .flow { padding: 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
-  .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; }
+  .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
   .grid-item:hover img { opacity: 0.85; }
   .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.03em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; }
   .grid-item:hover .meta { color: #777; }
@@ -57,212 +57,149 @@
   <span class="site-subtitle">35mm · stuttgart</span>
 </header>
 <div class="flow" id="flow"></div>
-<footer class="site-footer"><span>2025</span></footer>
+<footer class="site-footer">
+  <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
+  <span style="font-size:9px;color:#ddd;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
+</footer>
 <script>
 const photos = [
   {
-    "id": "DSC00065",
-    "thumb": "photos/thumb/DSC00065.jpg",
-    "full": "photos/full/DSC00065.jpg",
-    "meta": "ƒ/6.3 · 1/250 · ISO 1600"
-  },
-  {
-    "id": "DSC00260",
-    "thumb": "photos/thumb/DSC00260.jpg",
-    "full": "photos/full/DSC00260.jpg",
-    "meta": "ƒ/8 · 1/10 · ISO 3200"
-  },
-  {
-    "id": "DSC00989",
-    "thumb": "photos/thumb/DSC00989.jpg",
-    "full": "photos/full/DSC00989.jpg",
-    "meta": "ƒ/5.6 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01008",
-    "thumb": "photos/thumb/DSC01008.jpg",
-    "full": "photos/full/DSC01008.jpg",
-    "meta": "ƒ/5 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01025",
-    "thumb": "photos/thumb/DSC01025.jpg",
-    "full": "photos/full/DSC01025.jpg",
-    "meta": "ƒ/5.6 · 1/125 · ISO 320"
-  },
-  {
-    "id": "DSC01045",
-    "thumb": "photos/thumb/DSC01045.jpg",
-    "full": "photos/full/DSC01045.jpg",
-    "meta": "ƒ/5.6 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01047",
-    "thumb": "photos/thumb/DSC01047.jpg",
-    "full": "photos/full/DSC01047.jpg",
-    "meta": "ƒ/5.6 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01050",
-    "thumb": "photos/thumb/DSC01050.jpg",
-    "full": "photos/full/DSC01050.jpg",
-    "meta": "ƒ/5.6 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01098",
-    "thumb": "photos/thumb/DSC01098.jpg",
-    "full": "photos/full/DSC01098.jpg",
-    "meta": "ƒ/4.5 · 1/125 · ISO 400"
-  },
-  {
-    "id": "DSC01341",
-    "thumb": "photos/thumb/DSC01341.jpg",
-    "full": "photos/full/DSC01341.jpg",
-    "meta": "ƒ/6.3 · 1/250 · ISO 6400"
-  },
-  {
-    "id": "DSC01354",
-    "thumb": "photos/thumb/DSC01354.jpg",
-    "full": "photos/full/DSC01354.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 6400"
+    "id": "DSC01885",
+    "thumb": "photos/thumb/DSC01885.jpg",
+    "full": "photos/full/DSC01885.jpg",
+    "meta": "ƒ/5.6 · 1/250 · ISO 200 · 24 Mar 2026"
   },
   {
     "id": "DSC01798_edit_cut",
     "thumb": "photos/thumb/DSC01798_edit_cut.jpg",
     "full": "photos/full/DSC01798_edit_cut.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 100"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01800_edit",
     "thumb": "photos/thumb/DSC01800_edit.jpg",
     "full": "photos/full/DSC01800_edit.jpg",
-    "meta": "ISO 100"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01802_edit_crop",
     "thumb": "photos/thumb/DSC01802_edit_crop.jpg",
     "full": "photos/full/DSC01802_edit_crop.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 100"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01808_edit_crop",
     "thumb": "photos/thumb/DSC01808_edit_crop.jpg",
     "full": "photos/full/DSC01808_edit_crop.jpg",
-    "meta": "ISO 320"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01811_edit_crop",
     "thumb": "photos/thumb/DSC01811_edit_crop.jpg",
     "full": "photos/full/DSC01811_edit_crop.jpg",
-    "meta": "ISO 1600"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01814",
     "thumb": "photos/thumb/DSC01814.jpg",
     "full": "photos/full/DSC01814.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 1600"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01817",
     "thumb": "photos/thumb/DSC01817.jpg",
     "full": "photos/full/DSC01817.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 1600"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01832",
     "thumb": "photos/thumb/DSC01832.jpg",
     "full": "photos/full/DSC01832.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 100"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01848_edit_crop",
     "thumb": "photos/thumb/DSC01848_edit_crop.jpg",
     "full": "photos/full/DSC01848_edit_crop.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 125"
-  },
-  {
-    "id": "DSC01885",
-    "thumb": "photos/thumb/DSC01885.jpg",
-    "full": "photos/full/DSC01885.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 200"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01897",
     "thumb": "photos/thumb/DSC01897.jpg",
     "full": "photos/full/DSC01897.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 800"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01913",
     "thumb": "photos/thumb/DSC01913.jpg",
     "full": "photos/full/DSC01913.jpg",
-    "meta": "ƒ/11 · 1/250 · ISO 250"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC01954_edit_crop",
     "thumb": "photos/thumb/DSC01954_edit_crop.jpg",
     "full": "photos/full/DSC01954_edit_crop.jpg",
-    "meta": "ISO 800"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02040_edit",
     "thumb": "photos/thumb/DSC02040_edit.jpg",
     "full": "photos/full/DSC02040_edit.jpg",
-    "meta": "ISO 800"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02086_edit_crop",
     "thumb": "photos/thumb/DSC02086_edit_crop.jpg",
     "full": "photos/full/DSC02086_edit_crop.jpg",
-    "meta": "ISO 100"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02142_edit_crop_1",
     "thumb": "photos/thumb/DSC02142_edit_crop_1.jpg",
     "full": "photos/full/DSC02142_edit_crop_1.jpg",
-    "meta": "ISO 250"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02146_edit_crop",
     "thumb": "photos/thumb/DSC02146_edit_crop.jpg",
     "full": "photos/full/DSC02146_edit_crop.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 500"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02207_edit_crop",
     "thumb": "photos/thumb/DSC02207_edit_crop.jpg",
     "full": "photos/full/DSC02207_edit_crop.jpg",
-    "meta": "ƒ/11 · 1/250 · ISO 800"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
-    "id": "DSC02259_edit_crop",
-    "thumb": "photos/thumb/DSC02259_edit_crop.jpg",
-    "full": "photos/full/DSC02259_edit_crop.jpg",
-    "meta": "ISO 1000"
+    "id": "DSC02259_edit_crop_1",
+    "thumb": "photos/thumb/DSC02259_edit_crop_1.jpg",
+    "full": "photos/full/DSC02259_edit_crop_1.jpg",
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
-    "id": "DSC02282_edit_crop_1",
-    "thumb": "photos/thumb/DSC02282_edit_crop_1.jpg",
-    "full": "photos/full/DSC02282_edit_crop_1.jpg",
-    "meta": "ISO 1600"
+    "id": "DSC02282__edit_crop_1",
+    "thumb": "photos/thumb/DSC02282__edit_crop_1.jpg",
+    "full": "photos/full/DSC02282__edit_crop_1.jpg",
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02308_edit_crop",
     "thumb": "photos/thumb/DSC02308_edit_crop.jpg",
     "full": "photos/full/DSC02308_edit_crop.jpg",
-    "meta": "ISO 640"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02430_edit_crop",
     "thumb": "photos/thumb/DSC02430_edit_crop.jpg",
     "full": "photos/full/DSC02430_edit_crop.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 500"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   },
   {
     "id": "DSC02439_edit_crop",
     "thumb": "photos/thumb/DSC02439_edit_crop.jpg",
     "full": "photos/full/DSC02439_edit_crop.jpg",
-    "meta": "ISO 1000"
+    "meta": "ƒ/— · 1/— · ISO — · —"
   }
 ];
 
@@ -465,6 +402,13 @@ if (hash) {
     if (el) el.scrollIntoView({ block: 'start' });
   });
 }
+// Block right-click and drag on images
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
+document.addEventListener('dragstart', (e) => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
 </script>
 </body>
 </html>
