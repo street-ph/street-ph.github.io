@@ -148,32 +148,32 @@ TEMPLATE = r"""<!DOCTYPE html>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #fff; color: #000; font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
   .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; }
-  .site-title { font-size: 15px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
-  .site-subtitle { font-size: 11px; font-weight: 300; color: #999; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
+  .site-title { font-size: 18px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+  .site-subtitle { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
   .flow { padding: 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
   .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
   .grid-item:hover img { opacity: 0.85; }
-  .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.02em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; font-family: 'DM Mono', monospace; }
-  .grid-item:hover .meta { color: #777; }
+  .grid-item .meta { font-size: 16px; font-weight: 300; color: #777; letter-spacing: 0.02em; margin-top: 8px; padding-bottom: 2px; transition: color 0.3s ease; font-family: 'DM Mono', monospace; }
+  .grid-item:hover .meta { color: #444; }
   .expanded-photo { width: 100vw; margin-left: -40px; margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 60px 80px; opacity: 0; animation: expandIn 0.35s ease forwards; position: relative; }
-  .close-btn { position: absolute; top: 24px; right: 36px; background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 300; color: #999; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 8px; z-index: 10; }
+  .close-btn { position: absolute; top: 24px; right: 36px; background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 300; color: #777; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 8px; z-index: 10; }
   .close-btn:hover { color: #000; }
   .viewer-row { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-  .nav-arrow { background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 300; color: #bbb; cursor: pointer; padding: 24px 20px; transition: color 0.2s; flex-shrink: 0; user-select: none; line-height: 1; }
+  .nav-arrow { background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 300; color: #777; cursor: pointer; padding: 24px 20px; transition: color 0.2s; flex-shrink: 0; user-select: none; line-height: 1; }
   .nav-arrow:hover { color: #000; }
-  .nav-arrow:disabled { color: #e5e5e5; cursor: default; }
+  .nav-arrow:disabled { color: #ccc; cursor: default; }
   .img-stage { flex: 1; min-width: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
   .img-stage.enlarged { cursor: zoom-out; }
   .img-stage img { max-width: 100%; max-height: 78vh; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; transition: opacity 0.25s ease, max-height 0.3s ease; }
   .img-stage .img-back { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; }
   .img-stage.enlarged img { max-height: none; }
-  .meta-expanded { font-size: 11px; font-weight: 300; color: #aaa; letter-spacing: 0.02em; margin-top: 20px; text-align: center; font-family: 'DM Mono', monospace; }
+  .meta-expanded { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.02em; margin-top: 20px; text-align: center; font-family: 'DM Mono', monospace; }
   @keyframes expandIn { from { opacity: 0; } to { opacity: 1; } }
   .site-footer { padding: 80px 40px 40px; text-align: center; }
-  .site-footer span { font-size: 10px; font-weight: 300; color: #ccc; letter-spacing: 0.03em; font-family: 'DM Mono', monospace; }
-  @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } .grid-item .meta { font-size: 9px; } }
+  .site-footer span { font-size: 16px; font-weight: 300; color: #888; letter-spacing: 0.03em; font-family: 'DM Mono', monospace; }
+  @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } }
   @media (max-width: 1100px) {
     .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
     .flow { padding: 20px; }
@@ -198,7 +198,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <div class="flow" id="flow"></div>
 <footer class="site-footer">
   <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
-  <span style="font-size:9px;color:#ddd;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
+  <span style="color:#999;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
 </footer>
 <script>
 const photos = __PHOTOS_JSON__;
