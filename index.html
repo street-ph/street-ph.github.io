@@ -5,35 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>street</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #fff; color: #000; font-family: 'IBM Plex Mono', monospace; -webkit-font-smoothing: antialiased; }
+  body { background: #fff; color: #000; font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
   .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; }
-  .site-title { font-size: 13px; font-weight: 400; letter-spacing: 0.08em; text-transform: lowercase; }
-  .site-subtitle { font-size: 11px; font-weight: 300; color: #999; letter-spacing: 0.04em; }
+  .site-title { font-size: 15px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+  .site-subtitle { font-size: 11px; font-weight: 300; color: #999; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
   .flow { padding: 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
   .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
   .grid-item:hover img { opacity: 0.85; }
-  .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.03em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; }
+  .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.02em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; font-family: 'DM Mono', monospace; }
   .grid-item:hover .meta { color: #777; }
   .expanded-photo { width: 100vw; margin-left: -40px; margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 60px 80px; opacity: 0; animation: expandIn 0.35s ease forwards; position: relative; }
-  .close-btn { position: absolute; top: 20px; right: 32px; background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 300; color: #bbb; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 8px; z-index: 10; }
-  .close-btn:hover { color: #333; }
+  .close-btn { position: absolute; top: 24px; right: 36px; background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 300; color: #999; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 8px; z-index: 10; }
+  .close-btn:hover { color: #000; }
   .viewer-row { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-  .nav-arrow { background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 300; color: #ccc; cursor: pointer; padding: 20px 16px; transition: color 0.2s; flex-shrink: 0; user-select: none; line-height: 1; }
-  .nav-arrow:hover { color: #555; }
-  .nav-arrow:disabled { color: #eee; cursor: default; }
+  .nav-arrow { background: none; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 300; color: #bbb; cursor: pointer; padding: 24px 20px; transition: color 0.2s; flex-shrink: 0; user-select: none; line-height: 1; }
+  .nav-arrow:hover { color: #000; }
+  .nav-arrow:disabled { color: #e5e5e5; cursor: default; }
   .img-stage { flex: 1; min-width: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
   .img-stage.enlarged { cursor: zoom-out; }
   .img-stage img { max-width: 100%; max-height: 78vh; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; transition: opacity 0.25s ease, max-height 0.3s ease; }
   .img-stage .img-back { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; }
   .img-stage.enlarged img { max-height: none; }
-  .meta-expanded { font-size: 11px; font-weight: 300; color: #aaa; letter-spacing: 0.03em; margin-top: 20px; text-align: center; }
+  .meta-expanded { font-size: 11px; font-weight: 300; color: #aaa; letter-spacing: 0.02em; margin-top: 20px; text-align: center; font-family: 'DM Mono', monospace; }
   @keyframes expandIn { from { opacity: 0; } to { opacity: 1; } }
-  .site-footer { padding: 60px 40px 40px; text-align: center; }
-  .site-footer span { font-size: 10px; font-weight: 300; color: #ccc; letter-spacing: 0.04em; }
+  .site-footer { padding: 80px 40px 40px; text-align: center; }
+  .site-footer span { font-size: 10px; font-weight: 300; color: #ccc; letter-spacing: 0.03em; font-family: 'DM Mono', monospace; }
   @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } .grid-item .meta { font-size: 9px; } }
   @media (max-width: 1100px) {
     .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -64,142 +64,220 @@
 <script>
 const photos = [
   {
-    "id": "DSC01885",
-    "thumb": "photos/thumb/DSC01885.jpg",
-    "full": "photos/full/DSC01885.jpg",
-    "meta": "ƒ/5.6 · 1/250 · ISO 200 · 24 Mar 2026"
+    "id": "DSC00065",
+    "thumb": "photos/thumb/DSC00065.jpg",
+    "full": "photos/full/DSC00065.jpg",
+    "meta": "ƒ/6.3 · 1/250 · ISO 1600"
+  },
+  {
+    "id": "DSC00260",
+    "thumb": "photos/thumb/DSC00260.jpg",
+    "full": "photos/full/DSC00260.jpg",
+    "meta": "ƒ/8 · 1/10 · ISO 3200"
+  },
+  {
+    "id": "DSC00989",
+    "thumb": "photos/thumb/DSC00989.jpg",
+    "full": "photos/full/DSC00989.jpg",
+    "meta": "ƒ/5.6 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01008",
+    "thumb": "photos/thumb/DSC01008.jpg",
+    "full": "photos/full/DSC01008.jpg",
+    "meta": "ƒ/5 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01025",
+    "thumb": "photos/thumb/DSC01025.jpg",
+    "full": "photos/full/DSC01025.jpg",
+    "meta": "ƒ/5.6 · 1/125 · ISO 320"
+  },
+  {
+    "id": "DSC01045",
+    "thumb": "photos/thumb/DSC01045.jpg",
+    "full": "photos/full/DSC01045.jpg",
+    "meta": "ƒ/5.6 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01047",
+    "thumb": "photos/thumb/DSC01047.jpg",
+    "full": "photos/full/DSC01047.jpg",
+    "meta": "ƒ/5.6 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01050",
+    "thumb": "photos/thumb/DSC01050.jpg",
+    "full": "photos/full/DSC01050.jpg",
+    "meta": "ƒ/5.6 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01098",
+    "thumb": "photos/thumb/DSC01098.jpg",
+    "full": "photos/full/DSC01098.jpg",
+    "meta": "ƒ/4.5 · 1/125 · ISO 400"
+  },
+  {
+    "id": "DSC01341",
+    "thumb": "photos/thumb/DSC01341.jpg",
+    "full": "photos/full/DSC01341.jpg",
+    "meta": "ƒ/6.3 · 1/250 · ISO 6400"
+  },
+  {
+    "id": "DSC01354",
+    "thumb": "photos/thumb/DSC01354.jpg",
+    "full": "photos/full/DSC01354.jpg",
+    "meta": "ƒ/5.6 · 1/250 · ISO 6400"
   },
   {
     "id": "DSC01798_edit_cut",
     "thumb": "photos/thumb/DSC01798_edit_cut.jpg",
     "full": "photos/full/DSC01798_edit_cut.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 100"
   },
   {
     "id": "DSC01800_edit",
     "thumb": "photos/thumb/DSC01800_edit.jpg",
     "full": "photos/full/DSC01800_edit.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 100"
   },
   {
     "id": "DSC01802_edit_crop",
     "thumb": "photos/thumb/DSC01802_edit_crop.jpg",
     "full": "photos/full/DSC01802_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 100"
   },
   {
     "id": "DSC01808_edit_crop",
     "thumb": "photos/thumb/DSC01808_edit_crop.jpg",
     "full": "photos/full/DSC01808_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 320"
   },
   {
     "id": "DSC01811_edit_crop",
     "thumb": "photos/thumb/DSC01811_edit_crop.jpg",
     "full": "photos/full/DSC01811_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 1600"
   },
   {
     "id": "DSC01814",
     "thumb": "photos/thumb/DSC01814.jpg",
     "full": "photos/full/DSC01814.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 1600"
   },
   {
     "id": "DSC01817",
     "thumb": "photos/thumb/DSC01817.jpg",
     "full": "photos/full/DSC01817.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 1600"
   },
   {
     "id": "DSC01832",
     "thumb": "photos/thumb/DSC01832.jpg",
     "full": "photos/full/DSC01832.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 100"
   },
   {
     "id": "DSC01848_edit_crop",
     "thumb": "photos/thumb/DSC01848_edit_crop.jpg",
     "full": "photos/full/DSC01848_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 125"
+  },
+  {
+    "id": "DSC01885",
+    "thumb": "photos/thumb/DSC01885.jpg",
+    "full": "photos/full/DSC01885.jpg",
+    "meta": "ƒ/5.6 · 1/250 · ISO 200"
   },
   {
     "id": "DSC01897",
     "thumb": "photos/thumb/DSC01897.jpg",
     "full": "photos/full/DSC01897.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 800"
   },
   {
     "id": "DSC01913",
     "thumb": "photos/thumb/DSC01913.jpg",
     "full": "photos/full/DSC01913.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/11 · 1/250 · ISO 250"
   },
   {
     "id": "DSC01954_edit_crop",
     "thumb": "photos/thumb/DSC01954_edit_crop.jpg",
     "full": "photos/full/DSC01954_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 800"
   },
   {
     "id": "DSC02040_edit",
     "thumb": "photos/thumb/DSC02040_edit.jpg",
     "full": "photos/full/DSC02040_edit.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 800"
   },
   {
     "id": "DSC02086_edit_crop",
     "thumb": "photos/thumb/DSC02086_edit_crop.jpg",
     "full": "photos/full/DSC02086_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 100"
   },
   {
     "id": "DSC02142_edit_crop_1",
     "thumb": "photos/thumb/DSC02142_edit_crop_1.jpg",
     "full": "photos/full/DSC02142_edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 250"
   },
   {
     "id": "DSC02146_edit_crop",
     "thumb": "photos/thumb/DSC02146_edit_crop.jpg",
     "full": "photos/full/DSC02146_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 500"
   },
   {
     "id": "DSC02207_edit_crop",
     "thumb": "photos/thumb/DSC02207_edit_crop.jpg",
     "full": "photos/full/DSC02207_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/11 · 1/250 · ISO 800"
+  },
+  {
+    "id": "DSC02259_edit",
+    "thumb": "photos/thumb/DSC02259_edit.jpg",
+    "full": "photos/full/DSC02259_edit.jpg",
+    "meta": "ISO 1000"
+  },
+  {
+    "id": "DSC02259_edit_crop",
+    "thumb": "photos/thumb/DSC02259_edit_crop.jpg",
+    "full": "photos/full/DSC02259_edit_crop.jpg",
+    "meta": "ISO 1000"
   },
   {
     "id": "DSC02259_edit_crop_1",
     "thumb": "photos/thumb/DSC02259_edit_crop_1.jpg",
     "full": "photos/full/DSC02259_edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 1000"
   },
   {
-    "id": "DSC02282__edit_crop_1",
-    "thumb": "photos/thumb/DSC02282__edit_crop_1.jpg",
-    "full": "photos/full/DSC02282__edit_crop_1.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "id": "DSC02282_edit_crop_1",
+    "thumb": "photos/thumb/DSC02282_edit_crop_1.jpg",
+    "full": "photos/full/DSC02282_edit_crop_1.jpg",
+    "meta": "ISO 1600"
   },
   {
     "id": "DSC02308_edit_crop",
     "thumb": "photos/thumb/DSC02308_edit_crop.jpg",
     "full": "photos/full/DSC02308_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 640"
   },
   {
     "id": "DSC02430_edit_crop",
     "thumb": "photos/thumb/DSC02430_edit_crop.jpg",
     "full": "photos/full/DSC02430_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ƒ/5.6 · 1/250 · ISO 500"
   },
   {
     "id": "DSC02439_edit_crop",
     "thumb": "photos/thumb/DSC02439_edit_crop.jpg",
     "full": "photos/full/DSC02439_edit_crop.jpg",
-    "meta": "ƒ/— · 1/— · ISO — · —"
+    "meta": "ISO 1000"
   }
 ];
 
