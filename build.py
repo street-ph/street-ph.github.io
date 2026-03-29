@@ -7,20 +7,11 @@ Usage:
     2. Run: python build.py
     3. Commit & push — GitHub Pages serves it.
 
-What it does:
-    - Scans src/ for .jpg/.jpeg files
-    - Resizes to photos/thumb/ (600px long edge, 75% quality)
-    - Resizes to photos/full/ (2000px long edge, 85% quality)
-    - Reads EXIF (aperture, shutter speed, ISO, date)
-    - Generates index.html from the template
-
 Requirements:
     pip install Pillow
 """
 
-import os
-import sys
-import json
+import os, sys, json
 from pathlib import Path
 from datetime import datetime
 
@@ -44,13 +35,11 @@ def get_exif(img):
     exif_data = {}
     try:
         raw = img._getexif()
-        if not raw:
-            return exif_data
+        if not raw: return exif_data
         for tag_id, value in raw.items():
             tag = ExifTags.TAGS.get(tag_id, tag_id)
             exif_data[tag] = value
-    except Exception:
-        pass
+    except Exception: pass
     return exif_data
 
 
@@ -60,55 +49,41 @@ def format_meta(exif):
     if fnumber:
         try:
             f = float(fnumber)
-            parts.append(f"ƒ/{f:.1f}".rstrip("0").rstrip("."))
-        except (TypeError, ValueError):
-            pass
+            parts.append(f"\u0192/{f:.1f}".rstrip("0").rstrip("."))
+        except: pass
     exposure = exif.get("ExposureTime")
     if exposure:
         try:
             exp = float(exposure)
-            if exp >= 1:
-                parts.append(f"{exp:.1f}s")
-            else:
-                denom = round(1 / exp)
-                parts.append(f"1/{denom}")
-        except (TypeError, ValueError, ZeroDivisionError):
-            pass
+            if exp >= 1: parts.append(f"{exp:.1f}s")
+            else: parts.append(f"1/{round(1/exp)}")
+        except: pass
     iso = exif.get("ISOSpeedRatings")
-    if iso:
-        parts.append(f"ISO {iso}")
+    if iso: parts.append(f"ISO {iso}")
     date_str = exif.get("DateTimeOriginal")
     if date_str:
         try:
             dt = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
             parts.append(dt.strftime("%-d %b %Y"))
-        except (ValueError, TypeError):
-            pass
-    if not parts:
-        return "ƒ/— · 1/— · ISO — · —"
-    return " · ".join(parts)
+        except: pass
+    return " \u00b7 ".join(parts) if parts else "\u0192/\u2014 \u00b7 1/\u2014 \u00b7 ISO \u2014 \u00b7 \u2014"
 
 
 def get_sort_key(exif, filename):
     date_str = exif.get("DateTimeOriginal")
     if date_str:
-        try:
-            return datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
-        except (ValueError, TypeError):
-            pass
+        try: return datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
+        except: pass
     return filename
 
 
 def resize_image(img, long_edge):
     w, h = img.size
-    if max(w, h) <= long_edge:
-        return img.copy()
+    if max(w, h) <= long_edge: return img.copy()
     if w >= h:
-        new_w = long_edge
-        new_h = int(h * (long_edge / w))
+        new_w, new_h = long_edge, int(h * (long_edge / w))
     else:
-        new_h = long_edge
-        new_w = int(w * (long_edge / h))
+        new_h, new_w = long_edge, int(w * (long_edge / h))
     return img.resize((new_w, new_h), Image.LANCZOS)
 
 
@@ -116,13 +91,9 @@ def process_images():
     THUMB_DIR.mkdir(parents=True, exist_ok=True)
     FULL_DIR.mkdir(parents=True, exist_ok=True)
     extensions = {".jpg", ".jpeg", ".JPG", ".JPEG"}
-    sources = sorted(
-        [f for f in SRC_DIR.iterdir() if f.suffix in extensions],
-        key=lambda f: f.name
-    )
+    sources = sorted([f for f in SRC_DIR.iterdir() if f.suffix in extensions], key=lambda f: f.name)
     if not sources:
-        print(f"No images found in {SRC_DIR}/")
-        sys.exit(1)
+        print(f"No images found in {SRC_DIR}/"); sys.exit(1)
     photos = []
     for src_path in sources:
         name = src_path.stem
@@ -131,37 +102,23 @@ def process_images():
         try:
             from PIL import ImageOps
             img = ImageOps.exif_transpose(img)
-        except Exception:
-            pass
+        except: pass
         exif = get_exif(img)
         meta = format_meta(exif)
         sort_key = get_sort_key(exif, name)
-        if img.mode != "RGB":
-            img = img.convert("RGB")
+        if img.mode != "RGB": img = img.convert("RGB")
         thumb = resize_image(img, THUMB_LONG_EDGE)
-        thumb_path = THUMB_DIR / f"{name}.jpg"
-        thumb.save(thumb_path, "JPEG", quality=THUMB_QUALITY, optimize=True)
+        (THUMB_DIR / f"{name}.jpg").open("wb")
+        thumb.save(THUMB_DIR / f"{name}.jpg", "JPEG", quality=THUMB_QUALITY, optimize=True)
         full = resize_image(img, FULL_LONG_EDGE)
-        full_path = FULL_DIR / f"{name}.jpg"
-        full.save(full_path, "JPEG", quality=FULL_QUALITY, optimize=True)
-        photos.append({
-            "id": name,
-            "thumb": f"photos/thumb/{name}.jpg",
-            "full": f"photos/full/{name}.jpg",
-            "meta": meta,
-            "sort_key": sort_key,
-        })
-    photos.sort(key=lambda p: p["sort_key"])
-    for p in photos:
-        del p["sort_key"]
+        full.save(FULL_DIR / f"{name}.jpg", "JPEG", quality=FULL_QUALITY, optimize=True)
+        photos.append({"id": name, "thumb": f"photos/thumb/{name}.jpg", "full": f"photos/full/{name}.jpg", "meta": meta, "_sort": sort_key})
+    photos.sort(key=lambda p: p["_sort"])
+    for p in photos: del p["_sort"]
     return photos
 
 
-def generate_html(photos):
-    photos_json = json.dumps(photos, indent=2, ensure_ascii=False)
-
-    # Note: single braces in CSS/JS are doubled for f-string escaping
-    html = f"""<!DOCTYPE html>
+TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -169,489 +126,251 @@ def generate_html(photos):
 <title>street</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap');
-
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-
-  body {{
-    background: #fff;
-    color: #000;
-    font-family: 'IBM Plex Mono', monospace;
-    -webkit-font-smoothing: antialiased;
-  }}
-
-  .site-header {{
-    padding: 40px 40px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }}
-
-  .site-title {{
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-  }}
-
-  .site-subtitle {{
-    font-size: 11px;
-    font-weight: 300;
-    color: #999;
-    letter-spacing: 0.04em;
-  }}
-
-  .flow {{ padding: 40px; }}
-
-  .grid-section {{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }}
-
-  .grid-item {{ cursor: pointer; }}
-
-  .grid-item img {{
-    width: 100%;
-    display: block;
-    transition: opacity 0.3s ease;
-  }}
-
-  .grid-item:hover img {{ opacity: 0.85; }}
-
-  .grid-item .meta {{
-    font-size: 10px;
-    font-weight: 300;
-    color: #b0b0b0;
-    letter-spacing: 0.03em;
-    margin-top: 6px;
-    padding-bottom: 2px;
-    transition: color 0.3s ease;
-  }}
-
-  .grid-item:hover .meta {{ color: #777; }}
-
-  .expanded-photo {{
-    width: 100vw;
-    margin-left: -40px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 60px 80px;
-    opacity: 0;
-    animation: expandIn 0.35s ease forwards;
-    position: relative;
-  }}
-
-  .close-btn {{
-    position: absolute;
-    top: 20px;
-    right: 32px;
-    background: none;
-    border: none;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 18px;
-    font-weight: 300;
-    color: #bbb;
-    cursor: pointer;
-    transition: color 0.2s;
-    line-height: 1;
-    padding: 8px;
-    z-index: 10;
-  }}
-
-  .close-btn:hover {{ color: #333; }}
-
-  .viewer-row {{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    position: relative;
-  }}
-
-  .nav-arrow {{
-    background: none;
-    border: none;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 20px;
-    font-weight: 300;
-    color: #ccc;
-    cursor: pointer;
-    padding: 20px 16px;
-    transition: color 0.2s;
-    flex-shrink: 0;
-    user-select: none;
-    line-height: 1;
-  }}
-
-  .nav-arrow:hover {{ color: #555; }}
-  .nav-arrow:disabled {{ color: #eee; cursor: default; }}
-
-  .img-stage {{
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: zoom-in;
-  }}
-
-  .img-stage.enlarged {{
-    cursor: zoom-out;
-  }}
-
-  .img-stage img {{
-    max-width: 100%;
-    max-height: 78vh;
-    object-fit: contain;
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
-    transition: opacity 0.25s ease, max-height 0.3s ease;
-  }}
-
-  .img-stage .img-back {{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-  }}
-
-  .img-stage.enlarged img {{
-    max-height: none;
-  }}
-
-  .meta-expanded {{
-    font-size: 11px;
-    font-weight: 300;
-    color: #aaa;
-    letter-spacing: 0.03em;
-    margin-top: 20px;
-    text-align: center;
-  }}
-
-  @keyframes expandIn {{
-    from {{ opacity: 0; }}
-    to {{ opacity: 1; }}
-  }}
-
-  .site-footer {{
-    padding: 60px 40px 40px;
-    text-align: center;
-  }}
-
-  .site-footer span {{
-    font-size: 10px;
-    font-weight: 300;
-    color: #ccc;
-    letter-spacing: 0.04em;
-  }}
-
-  @media (min-width: 1800px) {{
-    .grid-section {{ grid-template-columns: repeat(6, 1fr); gap: 16px; }}
-    .grid-item .meta {{ font-size: 9px; }}
-  }}
-
-  @media (max-width: 1100px) {{
-    .grid-section {{ grid-template-columns: repeat(2, 1fr); }}
-    .flow {{ padding: 30px; }}
-    .expanded-photo {{ margin-left: -30px; padding: 40px 60px; }}
-    .site-header {{ padding: 30px 30px 0; }}
-  }}
-
-  @media (max-width: 640px) {{
-    .grid-section {{ grid-template-columns: 1fr; }}
-    .flow {{ padding: 20px; }}
-    .expanded-photo {{ margin-left: -20px; padding: 30px 40px; }}
-    .site-header {{
-      padding: 24px 20px 0;
-      flex-direction: column;
-      gap: 4px;
-    }}
-    .nav-arrow {{ padding: 12px 8px; font-size: 16px; }}
-    .close-btn {{ right: 12px; top: 8px; }}
-  }}
-
-  .grid-item {{
-    opacity: 0;
-    transform: translateY(8px);
-    animation: fadeUp 0.45s ease forwards;
-  }}
-
-  @keyframes fadeUp {{
-    to {{ opacity: 1; transform: translateY(0); }}
-  }}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; color: #000; font-family: 'IBM Plex Mono', monospace; -webkit-font-smoothing: antialiased; }
+  .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .site-title { font-size: 13px; font-weight: 400; letter-spacing: 0.08em; text-transform: lowercase; }
+  .site-subtitle { font-size: 11px; font-weight: 300; color: #999; letter-spacing: 0.04em; }
+  .flow { padding: 40px; }
+  .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-item { cursor: pointer; }
+  .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; }
+  .grid-item:hover img { opacity: 0.85; }
+  .grid-item .meta { font-size: 10px; font-weight: 300; color: #b0b0b0; letter-spacing: 0.03em; margin-top: 6px; padding-bottom: 2px; transition: color 0.3s ease; }
+  .grid-item:hover .meta { color: #777; }
+  .expanded-photo { width: 100vw; margin-left: -40px; margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 60px 80px; opacity: 0; animation: expandIn 0.35s ease forwards; position: relative; }
+  .close-btn { position: absolute; top: 20px; right: 32px; background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 300; color: #bbb; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 8px; z-index: 10; }
+  .close-btn:hover { color: #333; }
+  .viewer-row { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+  .nav-arrow { background: none; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 300; color: #ccc; cursor: pointer; padding: 20px 16px; transition: color 0.2s; flex-shrink: 0; user-select: none; line-height: 1; }
+  .nav-arrow:hover { color: #555; }
+  .nav-arrow:disabled { color: #eee; cursor: default; }
+  .img-stage { flex: 1; min-width: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
+  .img-stage.enlarged { cursor: zoom-out; }
+  .img-stage img { max-width: 100%; max-height: 78vh; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; transition: opacity 0.25s ease, max-height 0.3s ease; }
+  .img-stage .img-back { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; }
+  .img-stage.enlarged img { max-height: none; }
+  .meta-expanded { font-size: 11px; font-weight: 300; color: #aaa; letter-spacing: 0.03em; margin-top: 20px; text-align: center; }
+  @keyframes expandIn { from { opacity: 0; } to { opacity: 1; } }
+  .site-footer { padding: 60px 40px 40px; text-align: center; }
+  .site-footer span { font-size: 10px; font-weight: 300; color: #ccc; letter-spacing: 0.04em; }
+  @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } .grid-item .meta { font-size: 9px; } }
+  @media (max-width: 1100px) { .grid-section { grid-template-columns: repeat(2, 1fr); } .flow { padding: 30px; } .expanded-photo { margin-left: -30px; padding: 40px 60px; } .site-header { padding: 30px 30px 0; } }
+  @media (max-width: 640px) {
+    .grid-section { grid-template-columns: 1fr; }
+    .flow { padding: 16px; }
+    .expanded-photo { margin-left: -16px; padding: 12px 0 24px; margin-top: 12px; margin-bottom: 12px; align-items: flex-start; }
+    .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; }
+    .nav-arrow { display: none; }
+    .close-btn { display: none; }
+    .img-stage { cursor: pointer; }
+    .img-stage img { max-height: none; width: 100%; }
+    .meta-expanded { padding-left: 16px; }
+  }
+  .grid-item { opacity: 0; transform: translateY(8px); animation: fadeUp 0.45s ease forwards; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
-
 <header class="site-header">
   <span class="site-title">street</span>
   <span class="site-subtitle">35mm · stuttgart</span>
 </header>
-
 <div class="flow" id="flow"></div>
-
-<footer class="site-footer">
-  <span>2025</span>
-</footer>
-
+<footer class="site-footer"><span>2025</span></footer>
 <script>
-const photos = {photos_json};
+const photos = __PHOTOS_JSON__;
 
 const flow = document.getElementById('flow');
 let expandedId = null;
 let isEnlarged = false;
-const preloadCache = {{}};
+const preloadCache = {};
 
-function getIdx() {{
+function getIdx() {
   return photos.findIndex(p => p.id === expandedId);
-}}
+}
 
-function preloadImage(src) {{
+function preloadImage(src) {
   if (preloadCache[src]) return preloadCache[src];
-  const promise = new Promise((resolve) => {{
+  const promise = new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(src);
     img.onerror = () => resolve(src);
     img.src = src;
-  }});
+  });
   preloadCache[src] = promise;
   return promise;
-}}
+}
 
-function preloadNeighbors(idx) {{
+function preloadNeighbors(idx) {
   if (idx > 0) preloadImage(photos[idx - 1].full);
   if (idx < photos.length - 1) preloadImage(photos[idx + 1].full);
-}}
+}
 
-function openFromGrid(id) {{
+function openFromGrid(id) {
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
   render();
-  requestAnimationFrame(() => {{
+  requestAnimationFrame(() => {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-  }});
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   preloadNeighbors(getIdx());
-}}
+}
 
-function navigateArrow(id) {{
+function navigateArrow(id) {
   expandedId = id;
   isEnlarged = false;
   history.replaceState(null, '', '#' + id);
-
   const photo = photos.find(p => p.id === id);
   if (!photo) return;
-
   const idx = getIdx();
   const stage = document.querySelector('.img-stage');
   const imgFront = document.getElementById('img-front');
   const imgBack = document.getElementById('img-back');
   const meta = document.querySelector('.meta-expanded');
   const expanded = document.querySelector('.expanded-photo');
-
   if (!imgFront || !imgBack || !expanded) return;
   if (stage) stage.classList.remove('enlarged');
-
-  preloadImage(photo.full).then(() => {{
+  preloadImage(photo.full).then(() => {
     imgBack.src = photo.full;
     imgBack.style.opacity = '1';
     imgFront.style.opacity = '0';
-
-    setTimeout(() => {{
+    setTimeout(() => {
       imgFront.src = photo.full;
       imgFront.style.opacity = '1';
       imgBack.style.opacity = '0';
-
       expanded.id = photo.id;
       if (meta) meta.textContent = photo.meta;
-
       const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
       const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
       if (prevBtn) prevBtn.disabled = idx <= 0;
       if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
-
       rebindArrows(idx);
       preloadNeighbors(idx);
-    }}, 260);
-  }});
-}}
+    }, 260);
+  });
+}
 
-function rebindArrows(idx) {{
+function rebindArrows(idx) {
   const prevBtn = document.querySelector('.nav-arrow[data-dir="prev"]');
   const nextBtn = document.querySelector('.nav-arrow[data-dir="next"]');
+  if (prevBtn) {
+    const n = prevBtn.cloneNode(true);
+    prevBtn.replaceWith(n);
+    n.disabled = idx <= 0;
+    if (idx > 0) n.addEventListener('click', (e) => { e.stopPropagation(); navigateArrow(photos[idx - 1].id); });
+  }
+  if (nextBtn) {
+    const n = nextBtn.cloneNode(true);
+    nextBtn.replaceWith(n);
+    n.disabled = idx >= photos.length - 1;
+    if (idx < photos.length - 1) n.addEventListener('click', (e) => { e.stopPropagation(); navigateArrow(photos[idx + 1].id); });
+  }
+}
 
-  if (prevBtn) {{
-    const newPrev = prevBtn.cloneNode(true);
-    prevBtn.replaceWith(newPrev);
-    newPrev.disabled = idx <= 0;
-    if (idx > 0) {{
-      newPrev.addEventListener('click', (e) => {{
-        e.stopPropagation();
-        navigateArrow(photos[idx - 1].id);
-      }});
-    }}
-  }}
-  if (nextBtn) {{
-    const newNext = nextBtn.cloneNode(true);
-    nextBtn.replaceWith(newNext);
-    newNext.disabled = idx >= photos.length - 1;
-    if (idx < photos.length - 1) {{
-      newNext.addEventListener('click', (e) => {{
-        e.stopPropagation();
-        navigateArrow(photos[idx + 1].id);
-      }});
-    }}
-  }}
-}}
-
-function closeExpanded() {{
+function closeExpanded() {
   expandedId = null;
   isEnlarged = false;
   history.replaceState(null, '', window.location.pathname);
   render();
-}}
+}
 
-function render() {{
+function render() {
   flow.innerHTML = '';
   let gridItems = [];
-
-  function flushGrid() {{
+  function flushGrid() {
     if (!gridItems.length) return;
     const section = document.createElement('div');
     section.className = 'grid-section';
-    gridItems.forEach((item, i) => {{
-      item.style.animationDelay = `${{i * 0.035}}s`;
-      section.appendChild(item);
-    }});
+    gridItems.forEach((item, i) => { item.style.animationDelay = `${i * 0.035}s`; section.appendChild(item); });
     flow.appendChild(section);
     gridItems = [];
-  }}
-
-  photos.forEach((photo) => {{
-    if (photo.id === expandedId) {{
+  }
+  photos.forEach((photo) => {
+    if (photo.id === expandedId) {
       flushGrid();
       buildExpanded(photo);
-    }} else {{
+    } else {
       const item = document.createElement('div');
       item.className = 'grid-item';
-      item.innerHTML = `
-        <img src="${{photo.thumb}}" alt="${{photo.id}}" loading="lazy">
-        <div class="meta">${{photo.meta}}</div>
-      `;
+      item.innerHTML = `<img src="${photo.thumb}" alt="${photo.id}" loading="lazy"><div class="meta">${photo.meta}</div>`;
       item.addEventListener('click', () => openFromGrid(photo.id));
       gridItems.push(item);
-    }}
-  }});
-
+    }
+  });
   flushGrid();
-}}
+}
 
-function buildExpanded(photo) {{
+function buildExpanded(photo) {
   const idx = getIdx();
   const hasPrev = idx > 0;
   const hasNext = idx < photos.length - 1;
-
   const el = document.createElement('div');
   el.className = 'expanded-photo';
   el.id = photo.id;
-
   el.innerHTML = `
     <button class="close-btn" title="Close">&times;</button>
     <div class="viewer-row">
-      <button class="nav-arrow" ${{!hasPrev ? 'disabled' : ''}} data-dir="prev">&#8592;</button>
+      <button class="nav-arrow" ${!hasPrev ? 'disabled' : ''} data-dir="prev">&#8592;</button>
       <div class="img-stage" id="img-stage">
-        <img id="img-front" src="${{photo.full}}" alt="${{photo.id}}">
+        <img id="img-front" src="${photo.full}" alt="${photo.id}">
         <img id="img-back" class="img-back" src="" alt="">
       </div>
-      <button class="nav-arrow" ${{!hasNext ? 'disabled' : ''}} data-dir="next">&#8594;</button>
+      <button class="nav-arrow" ${!hasNext ? 'disabled' : ''} data-dir="next">&#8594;</button>
     </div>
-    <div class="meta-expanded">${{photo.meta}}</div>
+    <div class="meta-expanded">${photo.meta}</div>
   `;
-
   flow.appendChild(el);
-
-  el.querySelector('.close-btn').addEventListener('click', (e) => {{
-    e.stopPropagation();
-    closeExpanded();
-  }});
-
+  el.querySelector('.close-btn').addEventListener('click', (e) => { e.stopPropagation(); closeExpanded(); });
   rebindArrows(idx);
-
   const stage = el.querySelector('#img-stage');
-  stage.addEventListener('click', (e) => {{
+  const isMobile = window.innerWidth <= 640;
+  stage.addEventListener('click', (e) => {
     e.stopPropagation();
-    isEnlarged = !isEnlarged;
-    stage.classList.toggle('enlarged', isEnlarged);
-  }});
-
+    if (isMobile) { closeExpanded(); }
+    else { isEnlarged = !isEnlarged; stage.classList.toggle('enlarged', isEnlarged); }
+  });
   preloadNeighbors(idx);
-}}
+}
 
-document.addEventListener('keydown', (e) => {{
+document.addEventListener('keydown', (e) => {
   if (!expandedId) return;
   const idx = getIdx();
-
-  if (e.key === 'Escape') {{
-    if (isEnlarged) {{
-      isEnlarged = false;
-      const s = document.getElementById('img-stage');
-      if (s) s.classList.remove('enlarged');
-    }} else {{
-      closeExpanded();
-    }}
-  }} else if (e.key === 'ArrowLeft' && idx > 0) {{
-    navigateArrow(photos[idx - 1].id);
-  }} else if (e.key === 'ArrowRight' && idx < photos.length - 1) {{
-    navigateArrow(photos[idx + 1].id);
-  }}
-}});
+  if (e.key === 'Escape') {
+    if (isEnlarged) { isEnlarged = false; const s = document.getElementById('img-stage'); if (s) s.classList.remove('enlarged'); }
+    else { closeExpanded(); }
+  } else if (e.key === 'ArrowLeft' && idx > 0) { navigateArrow(photos[idx - 1].id); }
+  else if (e.key === 'ArrowRight' && idx < photos.length - 1) { navigateArrow(photos[idx + 1].id); }
+});
 
 const hash = window.location.hash.slice(1);
-if (hash) {{
-  const photo = photos.find(p => p.id === hash);
-  if (photo) expandedId = photo.id;
-}}
-
+if (hash) { const photo = photos.find(p => p.id === hash); if (photo) expandedId = photo.id; }
 render();
-
-if (expandedId) {{
-  requestAnimationFrame(() => {{
-    const el = document.getElementById(expandedId);
-    if (el) el.scrollIntoView({{ block: 'start' }});
-  }});
-}}
+if (expandedId) { requestAnimationFrame(() => { const el = document.getElementById(expandedId); if (el) el.scrollIntoView({ block: 'start' }); }); }
 </script>
-
 </body>
 </html>"""
 
+
+def generate_html(photos):
+    photos_json = json.dumps(photos, indent=2, ensure_ascii=False)
+    html = TEMPLATE.replace('__PHOTOS_JSON__', photos_json)
     OUTPUT_HTML.write_text(html, encoding="utf-8")
     print(f"  Generated {OUTPUT_HTML}")
 
 
 def main():
-    print("Building street portfolio...")
-    print()
+    print("Building street portfolio...\n")
     if not SRC_DIR.exists():
         SRC_DIR.mkdir()
         print(f"Created {SRC_DIR}/ — drop your original JPGs there and re-run.")
         sys.exit(0)
     photos = process_images()
-    print()
-    print(f"  {len(photos)} photos processed")
-    print()
+    print(f"\n  {len(photos)} photos processed\n")
     generate_html(photos)
-    print()
-    print("Done. Ready to commit & push.")
-
+    print("\nDone. Ready to commit & push.")
 
 if __name__ == "__main__":
     main()
