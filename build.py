@@ -34,12 +34,31 @@ OUTPUT_HTML = Path("index.html")
 def get_exif(img):
     exif_data = {}
     try:
-        raw = img._getexif()
-        if not raw: return exif_data
-        for tag_id, value in raw.items():
-            tag = ExifTags.TAGS.get(tag_id, tag_id)
-            exif_data[tag] = value
-    except Exception: pass
+        # Try modern method first (works with JFIF+EXIF files from RawTherapee)
+        exif = img.getexif()
+        if exif:
+            for tag_id, value in exif.items():
+                tag = ExifTags.TAGS.get(tag_id, tag_id)
+                exif_data[tag] = value
+            # Also read the Exif sub-IFD (contains FNumber, ExposureTime, ISO, dates)
+            try:
+                from PIL.ExifTags import IFD
+                exif_ifd = exif.get_ifd(IFD.Exif)
+                if exif_ifd:
+                    for tag_id, value in exif_ifd.items():
+                        tag = ExifTags.TAGS.get(tag_id, tag_id)
+                        exif_data[tag] = value
+            except Exception:
+                pass
+        # Fallback to legacy method
+        if not exif_data:
+            raw = img._getexif()
+            if raw:
+                for tag_id, value in raw.items():
+                    tag = ExifTags.TAGS.get(tag_id, tag_id)
+                    exif_data[tag] = value
+    except Exception:
+        pass
     return exif_data
 
 
@@ -113,7 +132,7 @@ def process_images():
         full = resize_image(img, FULL_LONG_EDGE)
         full.save(FULL_DIR / f"{name}.jpg", "JPEG", quality=FULL_QUALITY, optimize=True)
         photos.append({"id": name, "thumb": f"photos/thumb/{name}.jpg", "full": f"photos/full/{name}.jpg", "meta": meta, "_sort": sort_key})
-    photos.sort(key=lambda p: p["_sort"])
+    photos.sort(key=lambda p: (isinstance(p["_sort"], str), str(p["_sort"])))
     for p in photos: del p["_sort"]
     return photos
 
