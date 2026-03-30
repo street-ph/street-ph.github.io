@@ -114,6 +114,7 @@ def process_images():
     if not sources:
         print(f"No images found in {SRC_DIR}/"); sys.exit(1)
     photos = []
+    all_exif = []
     for src_path in sources:
         name = src_path.stem
         print(f"  Processing {src_path.name}...")
@@ -123,18 +124,18 @@ def process_images():
             img = ImageOps.exif_transpose(img)
         except: pass
         exif = get_exif(img)
+        all_exif.append(exif)
         meta = format_meta(exif)
         sort_key = get_sort_key(exif, name)
         if img.mode != "RGB": img = img.convert("RGB")
         thumb = resize_image(img, THUMB_LONG_EDGE)
-        (THUMB_DIR / f"{name}.jpg").open("wb")
         thumb.save(THUMB_DIR / f"{name}.jpg", "JPEG", quality=THUMB_QUALITY, optimize=True)
         full = resize_image(img, FULL_LONG_EDGE)
         full.save(FULL_DIR / f"{name}.jpg", "JPEG", quality=FULL_QUALITY, optimize=True)
         photos.append({"id": name, "thumb": f"photos/thumb/{name}.jpg", "full": f"photos/full/{name}.jpg", "meta": meta, "_sort": sort_key})
     photos.sort(key=lambda p: (isinstance(p["_sort"], str), str(p["_sort"])))
     for p in photos: del p["_sort"]
-    return photos
+    return photos, all_exif
 
 
 TEMPLATE = r"""<!DOCTYPE html>
@@ -148,10 +149,10 @@ TEMPLATE = r"""<!DOCTYPE html>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #fff; color: #000; font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
-  .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; min-height: 360px; align-content: start; flex-wrap: wrap; }
   .site-title { font-size: 18px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
   .site-subtitle { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
-  .flow { padding: 40px; }
+  .flow { padding: 0 40px 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
   .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
@@ -172,20 +173,48 @@ TEMPLATE = r"""<!DOCTYPE html>
   .img-stage.enlarged img { max-height: none; }
   .meta-expanded { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.02em; margin-top: 20px; text-align: center; font-family: 'DM Mono', monospace; }
   @keyframes expandIn { from { opacity: 0; } to { opacity: 1; } }
-  .site-footer { padding: 80px 40px 40px; text-align: center; }
+
+  /* Stats */
+  .stats { padding: 80px 40px 0; max-width: 720px; }
+  .stats-title { font-size: 16px; font-weight: 400; color: #999; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; }
+  .stats-row { display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat-group { min-width: 140px; }
+  .stat-label { font-size: 16px; font-weight: 400; color: #666; margin-bottom: 8px; }
+  .stat-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .stat-bar-label { font-size: 16px; font-weight: 300; color: #777; font-family: 'DM Mono', monospace; min-width: 72px; }
+  .stat-bar { height: 6px; background: #ddd; border-radius: 3px; transition: width 0.3s ease; }
+  .stat-bar-count { font-size: 16px; font-weight: 300; color: #aaa; font-family: 'DM Mono', monospace; }
+
+  /* Footer */
+  .site-footer { padding: 80px 40px 40px; }
   .site-footer span { font-size: 16px; font-weight: 300; color: #888; letter-spacing: 0.03em; font-family: 'DM Mono', monospace; }
-  @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } }
+  .site-footer a { color: #666; text-decoration: none; transition: color 0.2s; }
+  .site-footer a:hover { color: #000; }
+  .footer-email { margin-top: 16px; }
+  .footer-copy { margin-top: 40px; }
+  .footer-notice { color: #aaa; margin-top: 6px; display: inline-block; }
+
+  /* Breakpoints: 6 → 5 → 4 → 3 → 2 → 1 */
+  @media (min-width: 2200px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } }
+  @media (min-width: 1800px) and (max-width: 2199px) { .grid-section { grid-template-columns: repeat(5, 1fr); gap: 18px; } }
+  @media (min-width: 1400px) and (max-width: 1799px) { .grid-section { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
+  @media (max-width: 1399px) and (min-width: 1101px) { .grid-section { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
   @media (max-width: 1100px) {
     .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .flow { padding: 20px; }
-    .site-header { padding: 24px 20px 0; }
+    .flow { padding: 0 20px 20px; }
+    .site-header { padding: 24px 20px 0; min-height: 200px; }
     .grid-item { cursor: default; }
     .grid-item:hover img { opacity: 1; }
+    .stats { padding: 60px 20px 0; }
+    .site-footer { padding: 60px 20px 40px; }
   }
   @media (max-width: 640px) {
     .grid-section { grid-template-columns: 1fr; gap: 12px; }
-    .flow { padding: 16px; }
-    .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; }
+    .flow { padding: 0 16px 16px; }
+    .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; min-height: 160px; }
+    .stats { padding: 48px 16px 0; }
+    .stats-row { gap: 32px; }
+    .site-footer { padding: 48px 16px 32px; }
   }
   .grid-item { opacity: 0; transform: translateY(8px); animation: fadeUp 0.45s ease forwards; }
   @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
@@ -197,9 +226,13 @@ TEMPLATE = r"""<!DOCTYPE html>
   <span class="site-subtitle">35mm · stuttgart</span>
 </header>
 <div class="flow" id="flow"></div>
+__STATS_HTML__
 <footer class="site-footer">
-  <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
-  <span style="color:#999;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
+  <div class="footer-email"><span><a href="mailto:hi@kremenskii.art">hi@kremenskii.art</a></span></div>
+  <div class="footer-copy">
+    <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
+    <span class="footer-notice">No image may be reproduced without written permission.</span>
+  </div>
 </footer>
 <script>
 const photos = __PHOTOS_JSON__;
@@ -415,9 +448,77 @@ document.addEventListener('dragstart', (e) => {
 </html>"""
 
 
-def generate_html(photos):
+def generate_stats_html(all_exif):
+    """Generate HTML for shooting stats from collected EXIF data."""
+    apertures = {}
+    isos = {}
+    shutters = {}
+    total = len(all_exif)
+    has_data = 0
+
+    for exif in all_exif:
+        fn = exif.get("FNumber")
+        iso = exif.get("ISOSpeedRatings")
+        exp = exif.get("ExposureTime")
+
+        if fn or iso or exp:
+            has_data += 1
+
+        if fn:
+            try:
+                f = float(fn)
+                key = f"ƒ/{f:.1f}".rstrip("0").rstrip(".")
+                apertures[key] = apertures.get(key, 0) + 1
+            except: pass
+        if iso:
+            try:
+                key = f"ISO {int(iso)}"
+                isos[key] = isos.get(key, 0) + 1
+            except: pass
+        if exp:
+            try:
+                e = float(exp)
+                if e >= 1: key = f"{e:.1f}s"
+                else: key = f"1/{round(1/e)}"
+                shutters[key] = shutters.get(key, 0) + 1
+            except: pass
+
+    if has_data == 0:
+        return ""
+
+    def make_bars(data, max_bars=5):
+        sorted_items = sorted(data.items(), key=lambda x: -x[1])[:max_bars]
+        if not sorted_items: return ""
+        max_count = sorted_items[0][1]
+        bars = ""
+        for label, count in sorted_items:
+            width = max(8, int(120 * count / max_count))
+            bars += f'<div class="stat-bar-row"><span class="stat-bar-label">{label}</span><div class="stat-bar" style="width:{width}px;"></div><span class="stat-bar-count">{count}</span></div>\n'
+        return bars
+
+    sections = []
+    if apertures:
+        sections.append(f'<div class="stat-group"><div class="stat-label">Aperture</div>{make_bars(apertures)}</div>')
+    if shutters:
+        sections.append(f'<div class="stat-group"><div class="stat-label">Shutter</div>{make_bars(shutters)}</div>')
+    if isos:
+        sections.append(f'<div class="stat-group"><div class="stat-label">ISO</div>{make_bars(isos)}</div>')
+
+    if not sections:
+        return ""
+
+    return f'''<div class="stats">
+  <div class="stats-title">{has_data} shots</div>
+  <div class="stats-row">
+    {"".join(sections)}
+  </div>
+</div>'''
+
+
+def generate_html(photos, all_exif):
     photos_json = json.dumps(photos, indent=2, ensure_ascii=False)
-    html = TEMPLATE.replace('__PHOTOS_JSON__', photos_json)
+    stats_html = generate_stats_html(all_exif)
+    html = TEMPLATE.replace('__PHOTOS_JSON__', photos_json).replace('__STATS_HTML__', stats_html)
     OUTPUT_HTML.write_text(html, encoding="utf-8")
     print(f"  Generated {OUTPUT_HTML}")
 
@@ -428,9 +529,9 @@ def main():
         SRC_DIR.mkdir()
         print(f"Created {SRC_DIR}/ — drop your original JPGs there and re-run.")
         sys.exit(0)
-    photos = process_images()
+    photos, all_exif = process_images()
     print(f"\n  {len(photos)} photos processed\n")
-    generate_html(photos)
+    generate_html(photos, all_exif)
     print("\nDone. Ready to commit & push.")
 
 if __name__ == "__main__":

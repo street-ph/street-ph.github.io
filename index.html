@@ -9,10 +9,10 @@
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #fff; color: #000; font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
-  .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .site-header { padding: 40px 40px 0; display: flex; justify-content: space-between; align-items: baseline; min-height: 360px; align-content: start; flex-wrap: wrap; }
   .site-title { font-size: 18px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
   .site-subtitle { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
-  .flow { padding: 40px; }
+  .flow { padding: 0 40px 40px; }
   .grid-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-item { cursor: pointer; }
   .grid-item img { width: 100%; display: block; transition: opacity 0.3s ease; -webkit-user-drag: none; user-select: none; pointer-events: none; }
@@ -33,20 +33,48 @@
   .img-stage.enlarged img { max-height: none; }
   .meta-expanded { font-size: 16px; font-weight: 300; color: #666; letter-spacing: 0.02em; margin-top: 20px; text-align: center; font-family: 'DM Mono', monospace; }
   @keyframes expandIn { from { opacity: 0; } to { opacity: 1; } }
-  .site-footer { padding: 80px 40px 40px; text-align: center; }
+
+  /* Stats */
+  .stats { padding: 80px 40px 0; max-width: 720px; }
+  .stats-title { font-size: 16px; font-weight: 400; color: #999; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; }
+  .stats-row { display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat-group { min-width: 140px; }
+  .stat-label { font-size: 16px; font-weight: 400; color: #666; margin-bottom: 8px; }
+  .stat-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .stat-bar-label { font-size: 16px; font-weight: 300; color: #777; font-family: 'DM Mono', monospace; min-width: 72px; }
+  .stat-bar { height: 6px; background: #ddd; border-radius: 3px; transition: width 0.3s ease; }
+  .stat-bar-count { font-size: 16px; font-weight: 300; color: #aaa; font-family: 'DM Mono', monospace; }
+
+  /* Footer */
+  .site-footer { padding: 80px 40px 40px; }
   .site-footer span { font-size: 16px; font-weight: 300; color: #888; letter-spacing: 0.03em; font-family: 'DM Mono', monospace; }
-  @media (min-width: 1800px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } }
+  .site-footer a { color: #666; text-decoration: none; transition: color 0.2s; }
+  .site-footer a:hover { color: #000; }
+  .footer-email { margin-top: 16px; }
+  .footer-copy { margin-top: 40px; }
+  .footer-notice { color: #aaa; margin-top: 6px; display: inline-block; }
+
+  /* Breakpoints: 6 → 5 → 4 → 3 → 2 → 1 */
+  @media (min-width: 2200px) { .grid-section { grid-template-columns: repeat(6, 1fr); gap: 16px; } }
+  @media (min-width: 1800px) and (max-width: 2199px) { .grid-section { grid-template-columns: repeat(5, 1fr); gap: 18px; } }
+  @media (min-width: 1400px) and (max-width: 1799px) { .grid-section { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
+  @media (max-width: 1399px) and (min-width: 1101px) { .grid-section { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
   @media (max-width: 1100px) {
     .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .flow { padding: 20px; }
-    .site-header { padding: 24px 20px 0; }
+    .flow { padding: 0 20px 20px; }
+    .site-header { padding: 24px 20px 0; min-height: 200px; }
     .grid-item { cursor: default; }
     .grid-item:hover img { opacity: 1; }
+    .stats { padding: 60px 20px 0; }
+    .site-footer { padding: 60px 20px 40px; }
   }
   @media (max-width: 640px) {
     .grid-section { grid-template-columns: 1fr; gap: 12px; }
-    .flow { padding: 16px; }
-    .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; }
+    .flow { padding: 0 16px 16px; }
+    .site-header { padding: 24px 16px 0; flex-direction: column; gap: 4px; min-height: 160px; }
+    .stats { padding: 48px 16px 0; }
+    .stats-row { gap: 32px; }
+    .site-footer { padding: 48px 16px 32px; }
   }
   .grid-item { opacity: 0; transform: translateY(8px); animation: fadeUp 0.45s ease forwards; }
   @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
@@ -58,9 +86,33 @@
   <span class="site-subtitle">35mm · stuttgart</span>
 </header>
 <div class="flow" id="flow"></div>
+<div class="stats">
+  <div class="stats-title">48 shots</div>
+  <div class="stats-row">
+    <div class="stat-group"><div class="stat-label">Aperture</div><div class="stat-bar-row"><span class="stat-bar-label">ƒ/5.6</span><div class="stat-bar" style="width:120px;"></div><span class="stat-bar-count">24</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ƒ/5</span><div class="stat-bar" style="width:35px;"></div><span class="stat-bar-count">7</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ƒ/11</span><div class="stat-bar" style="width:10px;"></div><span class="stat-bar-count">2</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ƒ/6.3</span><div class="stat-bar" style="width:8px;"></div><span class="stat-bar-count">1</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ƒ/8</span><div class="stat-bar" style="width:8px;"></div><span class="stat-bar-count">1</span></div>
+</div><div class="stat-group"><div class="stat-label">Shutter</div><div class="stat-bar-row"><span class="stat-bar-label">1/250</span><div class="stat-bar" style="width:120px;"></div><span class="stat-bar-count">14</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">1/125</span><div class="stat-bar" style="width:94px;"></div><span class="stat-bar-count">11</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">1/400</span><div class="stat-bar" style="width:60px;"></div><span class="stat-bar-count">7</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">1/200</span><div class="stat-bar" style="width:17px;"></div><span class="stat-bar-count">2</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">1/10</span><div class="stat-bar" style="width:8px;"></div><span class="stat-bar-count">1</span></div>
+</div><div class="stat-group"><div class="stat-label">ISO</div><div class="stat-bar-row"><span class="stat-bar-label">ISO 400</span><div class="stat-bar" style="width:120px;"></div><span class="stat-bar-count">9</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ISO 3200</span><div class="stat-bar" style="width:106px;"></div><span class="stat-bar-count">8</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ISO 100</span><div class="stat-bar" style="width:93px;"></div><span class="stat-bar-count">7</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ISO 800</span><div class="stat-bar" style="width:53px;"></div><span class="stat-bar-count">4</span></div>
+<div class="stat-bar-row"><span class="stat-bar-label">ISO 1600</span><div class="stat-bar" style="width:40px;"></div><span class="stat-bar-count">3</span></div>
+</div>
+  </div>
+</div>
 <footer class="site-footer">
-  <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
-  <span style="color:#999;margin-top:6px;display:inline-block;">No image may be reproduced without written permission.</span>
+  <div class="footer-email"><span><a href="mailto:hi@kremenskii.art">hi@kremenskii.art</a></span></div>
+  <div class="footer-copy">
+    <span>&copy; Dmitrii Kremenskii. All rights reserved.</span><br>
+    <span class="footer-notice">No image may be reproduced without written permission.</span>
+  </div>
 </footer>
 <script>
 const photos = [
