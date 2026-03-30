@@ -499,8 +499,8 @@ def generate_stats_html(all_exif):
     if has_data == 0:
         return ""
 
-    def make_bars(data, max_bars=5):
-        sorted_items = sorted(data.items(), key=lambda x: -x[1])[:max_bars]
+    def make_bars(data):
+        sorted_items = sorted(data.items(), key=lambda x: -x[1])
         if not sorted_items: return ""
         max_count = sorted_items[0][1]
         bars = ""
