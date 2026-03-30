@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noimageindex">
+<title>{{SITE_TITLE}}</title>
+<style>
+{{CSS}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <span class="site-title">{{SITE_TITLE}}</span>
+  <span class="site-subtitle">{{SITE_SUBTITLE}}</span>
+</header>
+<div class="flow" id="flow"></div>
+{{STATS}}
+<footer class="site-footer">
+  <div class="footer-email"><span><a href="mailto:{{SITE_EMAIL}}">{{SITE_EMAIL}}</a></span></div>
+  <div class="footer-copy">
+    <span>&copy; {{SITE_AUTHOR}}. All rights reserved.</span><br>
+    <span class="footer-notice">No image may be reproduced without written permission.</span>
+  </div>
+</footer>
+<script>
+const photos = {{PHOTOS_JSON}};
+{{JS}}
+</script>
+</body>
+</html>
