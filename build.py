@@ -106,6 +106,18 @@ def resize_image(img, long_edge):
     return img.resize((new_w, new_h), Image.LANCZOS)
 
 
+import hashlib, re
+
+def make_short_id(name):
+    """Generate short ID like 'a3-1832' from filename like 'DSC01832_edit_crop'."""
+    # Extract digits from filename (last continuous group of 3+ digits)
+    digits = re.findall(r'\d{3,}', name)
+    num_part = digits[0][-4:] if digits else name[:4]
+    # Short hash prefix (2 hex chars from md5 of full name)
+    h = hashlib.md5(name.encode()).hexdigest()[:2]
+    return f"{h}-{num_part}"
+
+
 def process_images():
     THUMB_DIR.mkdir(parents=True, exist_ok=True)
     FULL_DIR.mkdir(parents=True, exist_ok=True)
@@ -132,7 +144,8 @@ def process_images():
         thumb.save(THUMB_DIR / f"{name}.jpg", "JPEG", quality=THUMB_QUALITY, optimize=True)
         full = resize_image(img, FULL_LONG_EDGE)
         full.save(FULL_DIR / f"{name}.jpg", "JPEG", quality=FULL_QUALITY, optimize=True)
-        photos.append({"id": name, "thumb": f"photos/thumb/{name}.jpg", "full": f"photos/full/{name}.jpg", "meta": meta, "_sort": sort_key})
+        short_id = make_short_id(name)
+        photos.append({"id": short_id, "thumb": f"photos/thumb/{name}.jpg", "full": f"photos/full/{name}.jpg", "meta": meta, "_sort": sort_key})
     photos.sort(key=lambda p: (isinstance(p["_sort"], str), str(p["_sort"])))
     for p in photos: del p["_sort"]
     return photos, all_exif
