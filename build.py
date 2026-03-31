@@ -173,16 +173,35 @@ def process_images():
                   quality=config.FULL_QUALITY, optimize=True)
 
         short_id = make_short_id(name)
+        
+        # Extract date for grouping
+        date_str = exif.get("DateTimeOriginal")
+        date_group = ""
+        if date_str:
+            try:
+                dt = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
+                date_group = dt.strftime("%B %Y")  # e.g. "March 2026"
+            except: pass
+
         photos.append({
             "id": short_id,
             "thumb": f"photos/thumb/{name}.jpg",
             "full": f"photos/full/{name}.jpg",
             "meta": meta,
+            "date_group": date_group,
             "_sort": sort_key,
         })
 
-    # Sort by date, then filename
-    photos.sort(key=lambda p: (isinstance(p["_sort"], str), str(p["_sort"])))
+    # Sort newest first; photos without date go to the end
+    photos.sort(key=lambda p: (isinstance(p["_sort"], str), str(p["_sort"])), reverse=True)
+    # Reverse string-sorted ones back (they were filenames, should stay alphabetical at the end)
+    # Actually simpler: separate dated and undated, sort each, combine
+    dated = [p for p in photos if not isinstance(p["_sort"], str)]
+    undated = [p for p in photos if isinstance(p["_sort"], str)]
+    dated.sort(key=lambda p: p["_sort"], reverse=True)
+    undated.sort(key=lambda p: str(p["_sort"]))
+    photos = dated + undated
+
     for p in photos:
         del p["_sort"]
 

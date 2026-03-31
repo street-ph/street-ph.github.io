@@ -179,6 +179,46 @@ body {
   to { opacity: 1; }
 }
 
+/* Date dividers */
+.date-divider {
+  font-size: 16px;
+  font-weight: 400;
+  color: #999;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 48px 0 16px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Share button */
+.share-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.share-btn:hover { color: #555; }
+
+.share-btn.copied { color: #000; }
+
+.share-btn.copied::after {
+  content: 'Copied';
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-family: 'DM Mono', monospace;
+  color: #666;
+  white-space: nowrap;
+}
+
 /* Stats */
 .stats { padding: 80px 40px 0; max-width: 720px; }
 .stats-title { font-size: 16px; font-weight: 400; color: #999; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; }

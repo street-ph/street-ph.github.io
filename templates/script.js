@@ -102,10 +102,23 @@ function render() {
   flow.innerHTML = '';
 
   if (!isDesktop()) {
-    // Simple feed mode: full quality, no interaction
+    // Simple feed mode with date groups
+    let lastGroup = '';
     const section = document.createElement('div');
     section.className = 'grid-section';
     photos.forEach((photo, i) => {
+      if (photo.date_group && photo.date_group !== lastGroup) {
+        lastGroup = photo.date_group;
+        const divider = document.createElement('div');
+        divider.className = 'date-divider';
+        divider.textContent = photo.date_group;
+        // Flush current section, add divider, start new section
+        if (section.children.length > 0) {
+          flow.appendChild(section.cloneNode(true));
+          section.innerHTML = '';
+        }
+        flow.appendChild(divider);
+      }
       const item = document.createElement('div');
       item.className = 'grid-item';
       item.id = photo.id;
@@ -113,12 +126,14 @@ function render() {
       item.innerHTML = `<img src="${photo.full}" alt="${photo.id}" loading="lazy"><div class="meta">${photo.meta}</div>`;
       section.appendChild(item);
     });
-    flow.appendChild(section);
+    if (section.children.length > 0) flow.appendChild(section);
     return;
   }
 
-  // Desktop: interactive grid with expand
+  // Desktop: interactive grid with expand and date groups
   let gridItems = [];
+  let lastGroup = '';
+
   function flushGrid() {
     if (!gridItems.length) return;
     const section = document.createElement('div');
@@ -127,7 +142,18 @@ function render() {
     flow.appendChild(section);
     gridItems = [];
   }
+
   photos.forEach((photo) => {
+    // Date divider
+    if (photo.date_group && photo.date_group !== lastGroup) {
+      flushGrid();
+      lastGroup = photo.date_group;
+      const divider = document.createElement('div');
+      divider.className = 'date-divider';
+      divider.textContent = photo.date_group;
+      flow.appendChild(divider);
+    }
+
     if (photo.id === expandedId) {
       flushGrid();
       buildExpanded(photo);
@@ -159,11 +185,34 @@ function buildExpanded(photo) {
       </div>
       <button class="nav-arrow" ${!hasNext ? 'disabled' : ''} data-dir="next">&#8594;</button>
     </div>
-    <div class="meta-expanded">${photo.meta}</div>
+    <div class="meta-expanded">
+      ${photo.meta}
+      <button class="share-btn" title="Copy link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+    </div>
   `;
   flow.appendChild(el);
   el.querySelector('.close-btn').addEventListener('click', (e) => { e.stopPropagation(); closeExpanded(); });
   rebindArrows(idx);
+
+  // Share button
+  const shareBtn = el.querySelector('.share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const url = window.location.origin + window.location.pathname + '#' + photo.id;
+      navigator.clipboard.writeText(url).then(() => {
+        shareBtn.classList.add('copied');
+        shareBtn.setAttribute('title', 'Copied!');
+        setTimeout(() => {
+          shareBtn.classList.remove('copied');
+          shareBtn.setAttribute('title', 'Copy link');
+        }, 2000);
+      });
+    });
+  }
+
   const stage = el.querySelector('#img-stage');
   stage.addEventListener('click', (e) => {
     e.stopPropagation();
