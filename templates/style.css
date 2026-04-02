@@ -264,8 +264,8 @@ body {
   .site-footer { padding: 48px 16px 32px; }
 }
 
-/* Animation */
-.grid-item {
+/* Animation — only on initial load via .entering */
+.grid-item.entering {
   opacity: 0;
   transform: translateY(8px);
   animation: fadeUp 0.45s ease forwards;
