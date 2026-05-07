@@ -246,7 +246,8 @@ body {
 @media (max-width: 1399px) and (min-width: 1101px) { .grid-section { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
 
 @media (max-width: 1100px) {
-  .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  /* .grid-section { grid-template-columns: repeat(2, 1fr); gap: 16px; } */
+  .grid-section { grid-template-columns: 1fr; gap: 16px; }
   .flow { padding: 0 20px 20px; }
   .site-header { padding: 24px 20px 0; min-height: 200px; }
   .grid-item { cursor: default; }
